@@ -1,0 +1,26 @@
+<%def name="body(title, heading, nav, body, description='')">
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>${title}</title>
+		<link rel="stylesheet" href="/static/style.css">
+		<script language="javascript" src="/static/script.js"></script>
+		<meta name="description" content="${description}">
+	</head>
+	<body>
+		<div id="header">
+			<h1><a href="/">Interest Link</a> - ${heading}</h1>
+		</div>
+		<div id="body">
+			<div id="nav">
+				${nav|n}
+			</div>
+			${body|n}
+		</div>
+		<div id="footer">
+			Link software by Shish
+		</div>
+	</body>
+</html>
+</%def>

@@ -1,0 +1,8 @@
+<%def name="body(surveys)">
+<ul>
+	% for survey in surveys:
+		<li><a href="/survey/${survey.id}">${survey.name} - ${survey.description}</a></li>
+	% endfor
+</ul>
+
+</%def>

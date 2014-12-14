@@ -1,0 +1,66 @@
+<%def name="body(survey, response, compareto=None)">
+<%
+def checkedIf(b):
+    if b:
+        return 'checked="checked"'
+    return ""
+%>
+
+<p>${survey.description}</p>
+<p>(Response range: want to avoid - <!-- wary - no opinion --> neutral / would do for the right partner - want to do)</p>
+
+% if response:
+<p>Give this link to someone so they can compare with you
+(they'll be prompted to fill in their answers first if they haven't already):
+<a href="http://link.shishnet.org/compare/${survey.id}/${response.user.username}">http://link.shishnet.org/compare/${survey.id}/${response.user.username}</a></p>
+<form action="/survey/${survey.id}" method="POST">
+<input type="hidden" name="_method" value="DELETE">
+<input type="submit" value="Delete answers">
+</form>
+% endif
+
+<form action="/survey/${survey.id}" method="POST">
+	% if compareto:
+		<input type="hidden" name="compareto" value="${compareto}">
+	% endif
+	<p><input type="checkbox" name="public" ${checkedIf(response and response.privacy == "public")}> Show up in the list of "people who have taken this survey" (without this, people will need a specific link to compare their results with yours)</p>
+
+<table class="zebra">
+<%
+prev = None
+%>
+	% for question in survey.questions:
+<%
+if response:
+    val = response.value(question.id)
+else:
+    val = 0
+%>
+		<tr>
+			<td style="white-space: nowrap;">
+				% if question.flip and question.flip == prev:
+					&nbsp;&nbsp;&rarr;
+				% endif
+				${question.text}
+			</td>
+		<td style="white-space: nowrap;">
+		Boo!
+		<input type="radio" name="q${question.id}" value="-2" ${checkedIf(val == -2)}>
+		<input type="radio" name="q${question.id}" value="1" ${checkedIf(val == 1)}>
+		<input type="radio" name="q${question.id}" value="2" ${checkedIf(val == 2)}>
+		Yay!
+		&nbsp;&nbsp;&nbsp;(No response / N/A
+		<input type="radio" name="q${question.id}" value="0" ${checkedIf(val == 0)}>)
+		</td>
+		<td>${question.extra or ""}</td>
+		</tr>
+		</li>
+		<%
+		prev = question
+		%>
+	% endfor
+</table>
+<input type="submit" value="Save answers">
+</form>
+
+</%def>

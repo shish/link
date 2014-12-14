@@ -1,0 +1,43 @@
+BODY {background: #DDD; margin: 0px}
+
+#header, #footer {
+	text-align: center;
+	clear: both;
+	padding: 16px;
+}
+#body {
+	background: #EEE;
+	border-top: 1px solid black;
+	border-bottom: 1px solid black;
+	padding: 32px;
+}
+#nav {
+	padding: 8px;
+	background: #EEE;
+	float: right;
+	width: 256px;
+	margin: 16px;
+	display: block;
+	border: 1px solid #CCC;
+}
+#footer {
+	font-size: 0.75em;
+}
+
+H1 {margin-top: 0px; margin-bottom: 0px;}
+H3 {margin-bottom: 4px;}
+
+#nav TABLE {
+	margin: auto;
+}
+TD INPUT[type="text"], TD INPUT[type="password"], TD TEXTAREA {
+	width: 100%;
+}
+
+TABLE.zebra {border-spacing: 0px; border: 2px solid #CCC;}
+TABLE.zebra TD, TABLE.zebra TH {vertical-align: middle; padding: 4px;}
+TABLE.zebra THEAD TD, TABLE.zebra THEAD TH {border-bottom: 2px solid #CCC;}
+TABLE.zebra TFOOT TD, TABLE.zebra TFOOT TH {border-top: 2px solid #CCC;}
+TABLE.zebra TR TD {border-bottom: 1px solid #DDD;}
+TABLE.zebra TR:nth-child(odd) {background: #EFEFEF;}
+TABLE.zebra TR:nth-child(even) {background: #E0E0E0;}
