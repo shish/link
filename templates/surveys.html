@@ -1,7 +1,19 @@
-<%def name="body(surveys)">
+<%def name="body(surveys, responses)">
 <ul>
 	% for survey in surveys:
-		<li><a href="/survey/${survey.id}">${survey.name} - ${survey.description}</a></li>
+		<li>
+			<a href="/survey/${survey.id}">${survey.name} - ${survey.description}</a>
+			% for response in responses:
+				% if response.survey == survey:
+					<%
+					new_count = len(survey.questions) - len(response.answers)
+					%>
+					% if new_count > 0:
+						(${new_count} recently added)
+					% endif
+				% endif
+			% endfor
+		</li>
 	% endfor
 </ul>
 

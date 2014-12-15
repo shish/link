@@ -7,8 +7,14 @@
 	</head>
 	<body>
 
-<h1>Comparing answers with ${theirs.user.username}</h1>
-<br>${survey.description}
+<h1>Comparing answers for <a href="/survey/${survey.id}">${survey.name}</a>
+% if theirs.privacy == "public":
+with ${theirs.user.username}
+% else:
+with [hidden]
+% endif
+</h1>
+<p>${survey.long_description or ""}</p>
 
 <ul>
 	% for my_answer in response.answers:
@@ -17,12 +23,18 @@
 				% if my_answer.value + their_answer.value > 2:
 					% if my_answer.question == their_answer.question:
 						% if my_answer.value == their_answer.value:
-							<li>You both ${my_answer.value_name()} "${my_answer.question.text}"</li>
+							<li><b>You both ${my_answer.value_name()} "${my_answer.question.text}"</b></li>
 						% else:
 							<li>You ${my_answer.value_name()} / they ${their_answer.value_name()} "${my_answer.question.text}"</li>
 						% endif
 					% else:
-						<li>You ${my_answer.value_name()} "${my_answer.question.text}" and they ${their_answer.value_name()} "${their_answer.question.text}"</li>
+						% if my_answer.value + their_answer.value == 4:
+							<li><b>You ${my_answer.value_name()} "${my_answer.question.text}"
+							and they ${their_answer.value_name()} "${their_answer.question.text}"</b></li>
+						% else:
+							<li>You ${my_answer.value_name()} "${my_answer.question.text}"
+							and they ${their_answer.value_name()} "${their_answer.question.text}"</li>
+						% endif
 					% endif
 				% endif
 			% endif

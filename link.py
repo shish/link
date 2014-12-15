@@ -11,11 +11,13 @@ import hashlib
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy import func
 from models import *
+from time import time
 
 urls = (
     '/?', 'surveys',
     '/survey', 'surveys',
     '/survey/(\d+)', 'survey',
+    '/question/(\d+)', 'question',
     '/compare/(\d+)/(.*)', 'compare',
     '/user', 'user',
     '/login', 'login',
@@ -116,13 +118,14 @@ class surveys:
     def GET(self):
     	orm = web.ctx.orm
         user = orm.query(User).filter(User.username==session.username).first()
+        responses = orm.query(Response).filter(Response.user==user).all()
         surveys = orm.query(Survey)
 
         if user:
             nav = render.control(user)
         else:
             nav = render.login()
-        return render.standard("Interest Link", "List of Lists", nav, render.surveys(surveys))
+        return render.standard("Interest Link", "List of Lists", nav, render.surveys(surveys, responses))
 
 
 class survey:
@@ -163,12 +166,17 @@ class survey:
         survey = orm.query(Survey).get(id)
         response = orm.query(Response).filter(Response.survey==survey, Response.user==user).first()
         if response:
-            orm.delete(response)
-        response = Response(survey=survey, user=user)
+            for answer in response.answers:
+                orm.delete(answer)
+	else:
+            response = Response(survey=survey, user=user)
         if post.get("public") == "on":
             response.privacy = "public"
         else:
             response.privacy = "private"
+
+        if post.get("privacy"):
+            response.privacy = post.get("privacy")
 
         for q in survey.questions:
             Answer(response=response, question=q, value=post["q%d" % q.id])
@@ -191,6 +199,28 @@ class survey:
             orm.delete(response)
         web.seeother("/survey/%d" % survey.id)
 
+
+class question:
+    @handle_exceptions
+    @if_logged_in
+    def POST(self, id):
+    	orm = web.ctx.orm
+        post = web.input()
+        user = orm.query(User).filter(User.username==session.username).one()
+
+        survey = orm.query(Survey).get(id)
+        q1 = Question(post["q1"])
+        q1.order = time()
+        survey.questions.append(q1)
+        if post.get("q2"):
+            q2 = Question(post["q2"])
+            q2.order = time()
+            survey.questions.append(q2)
+            q1.flip = q2
+            q2.flip = q1
+        web.seeother("/survey/%d" % survey.id)
+
+
 class compare:
     @handle_exceptions
     @if_logged_in
@@ -209,8 +239,13 @@ class compare:
                 users.append(other.user)
             nav = nav + render.others(survey, users)
 
-            them = orm.query(User).filter(User.username==compare).one()
-            theirs = orm.query(Response).filter(Response.survey==survey, Response.user==them).first()
+            if compare.isnumeric():
+                theirs = orm.query(Response).get(compare)
+            else:
+                them = orm.query(User).filter(User.username==compare).one()
+                theirs = orm.query(Response).filter(Response.survey==survey, Response.user==them).one()
+                if theirs.privacy != "public":
+                    theirs = None
             return render.standard("Survey", survey.name, nav, render.compare(survey, response, theirs))
         else:
             web.seeother("/survey/%d?compareto=%s" % (survey.id, compare))

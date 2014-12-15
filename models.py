@@ -49,7 +49,8 @@ class Survey(Base):
 
     id       = Column(Integer, primary_key=True)
     name     = Column(String, unique=True)
-    description     = Column(Unicode, nullable=False)
+    description = Column(Unicode, nullable=False)
+    long_description = Column(Unicode, nullable=False)
 
     def set_questions(self, qs):
         for q in qs:
