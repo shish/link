@@ -9,7 +9,7 @@ import logging.handlers
 import hashlib
 
 from sqlalchemy.orm import scoped_session, sessionmaker
-from sqlalchemy import func
+from sqlalchemy import func, or_, not_, and_
 from models import *
 from time import time
 
@@ -20,9 +20,10 @@ urls = (
     '/question/(\d+)', 'question',
     '/compare/(\d+)/(.*)', 'compare',
     '/user', 'user',
-    '/login', 'login',
-    '/logout', 'logout',
-    '/create', 'create',
+    '/user/login', 'login',
+    '/user/logout', 'logout',
+    '/user/create', 'create',
+    '/friends', 'friends',
     '/(favicon.ico)', 'static',
 )
 site = "http://link.shishnet.org"
@@ -116,7 +117,7 @@ session = web.session.Session(
 class surveys:
     @handle_exceptions
     def GET(self):
-    	orm = web.ctx.orm
+        orm = web.ctx.orm
         user = orm.query(User).filter(User.username==session.username).first()
         responses = orm.query(Response).filter(Response.user==user).all()
         surveys = orm.query(Survey)
@@ -132,7 +133,7 @@ class survey:
     @handle_exceptions
     @if_logged_in
     def GET(self, id):
-    	orm = web.ctx.orm
+        orm = web.ctx.orm
         data = web.input()
         user = orm.query(User).filter(User.username==session.username).one()
         nav = render.control(user)
@@ -141,11 +142,15 @@ class survey:
         response = orm.query(Response).filter(Response.survey==survey, Response.user==user).first()
         compare = data.get("compareto")
         if response:
-            others = orm.query(Response).filter(Response.survey==survey, Response.user!=user, Response.privacy=="public").all()
-            users = []
-            for other in others:
-                users.append(other.user)
-            nav = nav + render.others(survey, users)
+
+            friend_ids = [friend.id for friend in user.all_friends]
+            friends = []
+            for other in orm.query(Response).filter(Response.survey==survey, Response.user_id.in_(friend_ids), or_(Response.privacy=="public", Response.privacy=="friends")):
+                friends.append(other.user)
+            others = []
+            for other in orm.query(Response).filter(Response.survey==survey, Response.user!=user, not_(Response.user_id.in_(friend_ids)), Response.privacy=="public"):
+                others.append(other.user)
+            nav = nav + render.others(survey, friends, others)
 
             if compare:
                 them = orm.query(User).filter(User.username==compare).one()
@@ -159,7 +164,7 @@ class survey:
     @handle_exceptions
     @if_logged_in
     def POST(self, id):
-    	orm = web.ctx.orm
+        orm = web.ctx.orm
         post = web.input()
         user = orm.query(User).filter(User.username==session.username).one()
 
@@ -168,7 +173,7 @@ class survey:
         if response:
             for answer in response.answers:
                 orm.delete(answer)
-	else:
+        else:
             response = Response(survey=survey, user=user)
         if post.get("public") == "on":
             response.privacy = "public"
@@ -189,7 +194,7 @@ class survey:
     @handle_exceptions
     @if_logged_in
     def DELETE(self, id):
-    	orm = web.ctx.orm
+        orm = web.ctx.orm
         post = web.input()
         user = orm.query(User).filter(User.username==session.username).one()
 
@@ -204,7 +209,7 @@ class question:
     @handle_exceptions
     @if_logged_in
     def POST(self, id):
-    	orm = web.ctx.orm
+        orm = web.ctx.orm
         post = web.input()
         user = orm.query(User).filter(User.username==session.username).one()
 
@@ -225,7 +230,7 @@ class compare:
     @handle_exceptions
     @if_logged_in
     def GET(self, id, compare):
-    	orm = web.ctx.orm
+        orm = web.ctx.orm
         data = web.input()
         user = orm.query(User).filter(User.username==session.username).one()
         nav = render.control(user)
@@ -233,20 +238,30 @@ class compare:
         survey = orm.query(Survey).get(id)
         response = orm.query(Response).filter(Response.survey==survey, Response.user==user).first()
         if response:
-            others = orm.query(Response).filter(Response.survey==survey, Response.user!=user, Response.privacy=="public").all()
-            users = []
-            for other in others:
-                users.append(other.user)
-            nav = nav + render.others(survey, users)
+
+            friend_ids = [friend.id for friend in user.all_friends]
+            friends = []
+            for other in orm.query(Response).filter(Response.survey==survey, Response.user_id.in_(friend_ids), or_(Response.privacy=="public", Response.privacy=="friends")):
+                friends.append(other.user)
+            others = []
+            for other in orm.query(Response).filter(Response.survey==survey, Response.user!=user, not_(Response.user_id.in_(friend_ids)), Response.privacy=="public"):
+                others.append(other.user)
+            nav = nav + render.others(survey, friends, others)
 
             if compare.isnumeric():
                 theirs = orm.query(Response).get(compare)
+                them = theirs.user
             else:
                 them = orm.query(User).filter(User.username==compare).one()
                 theirs = orm.query(Response).filter(Response.survey==survey, Response.user==them).one()
-                if theirs.privacy != "public":
-                    theirs = None
-            return render.standard("Survey", survey.name, nav, render.compare(survey, response, theirs))
+
+            if (
+                    (theirs.privacy == "public") or
+                    (theirs.privacy == "friends" and user in them.all_friends)
+            ):
+                return render.standard("Survey", survey.name, nav, render.compare(survey, response, theirs))
+            else:
+                raise LinkError("Permission denied", "This response is either friends-only or passworded")
         else:
             web.seeother("/survey/%d?compareto=%s" % (survey.id, compare))
 
@@ -302,6 +317,57 @@ class create:
                 raise LinkError("Password Error", "The password and confirmation password don't match D:")
         else:
             raise LinkError("Name Taken", "That username has already been taken, sorry D:")
+
+
+class friends:
+    @handle_exceptions
+    def GET(self):
+        orm = web.ctx.orm
+        data = web.input()
+        user = orm.query(User).filter(User.username==session.username).one()
+        nav = render.control(user)
+
+        return render.standard("Interest Link", "Friends", nav, render.friends(user))
+
+    @handle_exceptions
+    def POST(self):
+        orm = web.ctx.orm
+        data = web.input()
+        their_name = data["their_name"]
+        user = orm.query(User).filter(User.username==session.username).one()
+        try:
+            them = orm.query(User).filter(User.username.ilike(their_name)).one()
+        except Exception:
+            raise LinkError("Not found", "User %s not found" % their_name)
+
+        incoming = orm.query(Friendship).filter(Friendship.friend_b==user, Friendship.confirmed==False).all()
+        for req in incoming:
+            if req.friend_a == them:
+                req.confirmed = True
+                break
+        else:
+            orm.add(Friendship(friend_a=user, friend_b=them))
+
+        web.seeother("/friends")
+
+    @handle_exceptions
+    def DELETE(self):
+        orm = web.ctx.orm
+        data = web.input()
+        their_name = data["their_name"]
+        user = orm.query(User).filter(User.username==session.username).one()
+        try:
+            them = orm.query(User).filter(User.username==their_name).one()
+        except Exception:
+            raise LinkError("Not found", "User %s not found (note that names are case-sensitive at the moment)" % their_name)
+
+        orm.query(Friendship).filter(or_(
+            and_(Friendship.friend_a==user, Friendship.friend_b==them),
+            and_(Friendship.friend_a==them, Friendship.friend_b==user),
+        )).delete()
+
+        web.seeother("/friends")
+
 
 
 class static:

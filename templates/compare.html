@@ -1,14 +1,6 @@
 <%def name="body(survey, response, theirs)">
-<!doctype html>
-<html>
-	<head>
-		<meta charset="utf-8">
-		<title>Link - ${survey.name}</title>
-	</head>
-	<body>
-
 <h1>Comparing answers for <a href="/survey/${survey.id}">${survey.name}</a>
-% if theirs.privacy == "public":
+% if theirs.privacy == "public" or theirs.privacy == "friends":
 with ${theirs.user.username}
 % else:
 with [hidden]
@@ -41,8 +33,4 @@ with [hidden]
 		% endfor
 	% endfor
 </ul>
-
-	</body>
-</html>
 </%def>
-

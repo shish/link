@@ -42,8 +42,14 @@ link = "http://link.shishnet.org/compare/%d/%d" % (survey.id, response.id)
 	<p>
 	Privacy:
 		<select name="privacy">
+			<!--
+			<option value="private" ${selectedIf(response and response.privacy=="private")}
+				>Private (You need to give someone a key for them to see it)</option>
+			-->
+			<option value="friends" ${selectedIf(response and response.privacy=="friends")}
+				>Friends Only (Friends can see, others can't)</option>
 			<option value="hidden" ${selectedIf(response and response.privacy=="hidden")}
-				>Hidden (Response will only be given an ID number and not linked to an account)</option>
+				>Hidden (Response will only be given an ID number and not visibly linked to an account)</option>
 			<option value="public" ${selectedIf(response and response.privacy=="public")}
 				>Public (Show up in the list of people who answered)</option>
 		</select>

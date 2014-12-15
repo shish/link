@@ -1,8 +1,18 @@
 <%def name="body(surveys, responses)">
+<p>How this site works: you say what you like; your friends say what they like;
+the site tells you what you have in common.</p>
+<p>Why? Say I have a terrible secret that I like singing along to S-Club 7, which
+I will never admit to in public. If any of my friends are also into that, then we
+can find each other and have secret S-Club karaoke sessions. My other friends who
+don't like S-Club will never know :D</p>
+<p>This isn't foolproof; somebody could claim to like everything just to see what
+matches they get - but if one of your friends does that, you should punch them
+in the face until they stop doing that :3</p>
 <ul>
 	% for survey in surveys:
 		<li>
 			<a href="/survey/${survey.id}">${survey.name} - ${survey.description}</a>
+			[${survey.user.username}]
 			% for response in responses:
 				% if response.survey == survey:
 					<%
@@ -16,5 +26,4 @@
 		</li>
 	% endfor
 </ul>
-
 </%def>

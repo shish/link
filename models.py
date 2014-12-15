@@ -2,10 +2,11 @@ import hashlib
 import bcrypt
 import StringIO
 
-from sqlalchemy import create_engine, func
-from sqlalchemy import Column, Integer, String, Unicode, Boolean, DateTime, Float
+from sqlalchemy import create_engine, func, select
+from sqlalchemy import Table, Column, Integer, String, Unicode, Boolean, DateTime, Float
 from sqlalchemy import ForeignKey, Table
 from sqlalchemy.orm import relationship, backref
+from sqlalchemy import func, or_, not_, and_
 
 import ConfigParser
 config = ConfigParser.SafeConfigParser()
@@ -22,6 +23,25 @@ from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
 
+#friendship = Table(
+#    'friendship', Base.metadata,
+#    Column('friend_a_id', Integer, ForeignKey('user.id'), primary_key=True),
+#    Column('friend_b_id', Integer, ForeignKey('user.id'), primary_key=True)
+#)
+class Friendship(Base):
+    __tablename__ = "friendship"
+    friend_a_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
+    friend_b_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
+    confirmed = Column(Boolean, nullable=False, default=False)
+
+    friend_a = relationship(
+        "User", foreign_keys=[friend_a_id],
+    )
+    friend_b = relationship(
+        "User", foreign_keys=[friend_b_id],
+    )
+
+
 class User(Base):
     __tablename__ = "user"
 
@@ -29,6 +49,16 @@ class User(Base):
     username = Column(Unicode, nullable=False, index=True)
     password = Column(String(255), nullable=False)
     email    = Column(Unicode, default=None, nullable=True)
+
+    # this relationship is used for persistence
+    friends = relationship("User", secondary=Friendship.__table__,
+                           primaryjoin=id==Friendship.friend_a_id,
+                           secondaryjoin=id==Friendship.friend_b_id,
+    )
+    friend_requests_incoming = relationship(
+        "Friendship", primaryjoin=and_(id==Friendship.friend_b_id, Friendship.confirmed==False))
+    friend_requests_sent = relationship(
+        "Friendship", primaryjoin=and_(id==Friendship.friend_a_id, Friendship.confirmed==False))
 
     def __init__(self, username, password, email=None, password_crypt=None):
         self.username = username
@@ -44,13 +74,34 @@ class User(Base):
         return "<User('%s')>" % (self.name, )
 
 
+# this relationship is viewonly and selects across the union of all
+# friends
+friendship_union = (
+    select([Friendship.friend_a_id, Friendship.friend_b_id]).where(Friendship.confirmed==True)
+).union(
+    select([Friendship.friend_b_id, Friendship.friend_a_id]).where(Friendship.confirmed==True)
+).alias()
+
+User.all_friends = relationship('User',
+                       secondary=friendship_union,
+                       primaryjoin=User.id==friendship_union.c.friend_a_id,
+                       secondaryjoin=User.id==friendship_union.c.friend_b_id,
+                       viewonly=True)
+
+
 class Survey(Base):
     __tablename__ = "survey"
 
-    id       = Column(Integer, primary_key=True)
-    name     = Column(String, unique=True)
+    id      = Column(Integer, primary_key=True)
+    name    = Column(String, unique=True)
+    user_id = Column(Integer, ForeignKey('user.id'), nullable=False, index=True)
     description = Column(Unicode, nullable=False)
     long_description = Column(Unicode, nullable=False)
+
+    user = relationship(
+        "User",
+        backref=backref('surveys')
+    )
 
     def set_questions(self, qs):
         for q in qs:
