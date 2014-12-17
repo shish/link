@@ -1,0 +1,59 @@
+<%def name="body(user)">
+<h1>${user.username}'s friend list</h1>
+
+<table width="100%" border="1"><tr>
+	<td width="33%">Confirmed</td>
+	<td width="33%">Sent Requests</td>
+	<td width="33%">Incoming Requests</td>
+</tr><tr>
+	<td>
+<ul>
+	% for friend in user.all_friends:
+		<li>
+			${friend.username}
+			<form action="/friends" method="POST">
+				<input type="hidden" name="_method" value="DELETE">
+				<input type="hidden" name="their_name" value="${friend.username}">
+				<input type="submit" value="Remove">
+			</form>
+		</li>
+	% endfor
+</ul>
+	</td>
+	<td>
+	% for request in user.friend_requests_sent:
+		<li>
+			${request.friend_b.username}
+			<form action="/friends" method="POST">
+				<input type="hidden" name="_method" value="DELETE">
+				<input type="hidden" name="their_name" value="${request.friend_b.username}">
+				<input type="submit" value="Cancel">
+			</form>
+		</li>
+	% endfor
+		<li>
+			<form action="/friends" method="POST">
+				<input type="text" name="their_name" placeholder="Their username">
+				<input type="submit" value="Send Request">
+			</form>
+		</li>
+	</td>
+	<td>
+	% for request in user.friend_requests_incoming:
+		<li>
+			${request.friend_a.username}
+			<form action="/friends" method="POST">
+				<input type="hidden" name="their_name" value="${request.friend_a.username}">
+				<input type="submit" value="Accept">
+			</form>
+			<form action="/friends" method="POST">
+				<input type="hidden" name="_method" value="DELETE">
+				<input type="hidden" name="their_name" value="${request.friend_a.username}">
+				<input type="submit" value="Decline">
+			</form>
+		</li>
+	% endfor
+	</td>
+</tr></table>
+</%def>
+

@@ -1,4 +1,5 @@
-<%def name="body(survey, response, compareto=None)">
+## vim:ts=4
+<%def name="body(user, survey, response, compare=None)">
 <%
 def checkedIf(b):
     if b:
@@ -16,7 +17,7 @@ def selectedIf(b):
 
 % if response:
 <%
-link = "http://link.shishnet.org/compare/%d/%d" % (survey.id, response.id)
+link = "http://link.shishnet.org/response/%d" % (response.id)
 #if response.privacy == "public":
 #    link = "http://link.shishnet.org/compare/%d/%s" % (survey.id, response.user.username)
 #elif response.privacy == "hidden":
@@ -29,18 +30,25 @@ link = "http://link.shishnet.org/compare/%d/%d" % (survey.id, response.id)
 	(they'll be prompted to fill in their answers first if they haven't already):
 	<a href="${link}">${link}</a></p>
 % endif
-<form action="/survey/${survey.id}" method="POST">
+<form action="/response/${response.id}" method="POST">
 	<input type="hidden" name="_method" value="DELETE">
 	<input type="submit" value="Delete answers">
 </form>
 % endif
 
+% if survey.user == user:
 <form action="/survey/${survey.id}" method="POST">
-	% if compareto:
-		<input type="hidden" name="compareto" value="${compareto}">
+	<input type="submit" value="Set order">
+</form>
+% endif
+
+<form action="/response" method="POST">
+	<input type="hidden" name="survey" value="${survey.id}">
+	% if compare:
+		<input type="hidden" name="compare" value="${compare}">
 	% endif
 	<p>
-	Privacy:
+		Privacy:
 		<select name="privacy">
 			<!--
 			<option value="private" ${selectedIf(response and response.privacy=="private")}
@@ -61,45 +69,57 @@ link = "http://link.shishnet.org/compare/%d/%d" % (survey.id, response.id)
 <%
 prev = None
 %>
-	% for question in survey.questions:
-<%
-if response:
-    val = response.value(question.id)
-else:
-    val = 0
-%>
+	% for question in sorted(survey.questions + survey.headings):
+		% if question.entry_type == "heading":
+		<tr>
+			<td colspan="3"><b>${question.text}</b></td>
+		</tr>
+		% else:
 		<tr>
 			<td style="white-space: nowrap;">
+			% if survey.user == user:
+				${question.id} - ${question.order}
+				<a href="/question/${question.id}/up">&uarr;</a>
+				<a href="/question/${question.id}/down">&darr;</a>
+				<a href="/question/${question.id}/remove">X</a>
+			% endif
 				% if question.flip and question.flip == prev:
 					&nbsp;&nbsp;&rarr;
 				% endif
 				${question.text}
 			</td>
-		<td style="white-space: nowrap;">
-		Boo!
-		<input type="radio" name="q${question.id}" value="-2" ${checkedIf(val == -2)}>
-		<input type="radio" name="q${question.id}" value="1" ${checkedIf(val == 1)}>
-		<input type="radio" name="q${question.id}" value="2" ${checkedIf(val == 2)}>
-		Yay!
-		&nbsp;&nbsp;&nbsp;(No response
-		<input type="radio" name="q${question.id}" value="0" ${checkedIf(val == 0)}>)
-		</td>
-		<td>${question.extra or ""}</td>
+			<td style="white-space: nowrap;">
+				<%
+				val = response.value(question.id) if response else 0
+				%>
+				Boo!
+				<input type="radio" name="q${question.id}" value="-2" ${checkedIf(val == -2)}>
+				<input type="radio" name="q${question.id}" value="1" ${checkedIf(val == 1)}>
+				<input type="radio" name="q${question.id}" value="2" ${checkedIf(val == 2)}>
+				Yay!
+				&nbsp;&nbsp;&nbsp;(No response
+				<input type="radio" name="q${question.id}" value="0" ${checkedIf(val == 0)}>)
+			</td>
+			<td>${question.extra or ""}</td>
 		</tr>
-		</li>
 		<%
 		prev = question
 		%>
+		% endif
 	% endfor
 </table>
 <input type="submit" value="Save answers">
 </form>
 
+##% if survey.user == user:
 <p>
-<form action="/question/${survey.id}" method="POST">
+<form action="/question" method="POST">
+	<input type="hidden" name="survey" value="${survey.id}">
 	<input type="text" name="q1" placeholder="Question">
 	<br><input type="text" name="q2" placeholder="Paired opposite (optional)">
+	<br><input type="text" name="q1extra" placeholder="Extra description for Q1">
 	<br><input type="submit" value="Add question">
 </form>
+##% endif
 
 </%def>

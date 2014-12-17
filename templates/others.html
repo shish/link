@@ -1,15 +1,15 @@
 <%def name="body(survey, friends, others)">
 <p>Friends who did this:
 <ul>
-% for user in friends:
-	<li><a href="/compare/${survey.id}/${user.username}">${user.username}</a></li>
+% for response in friends:
+	<li><a href="/response/${response.id}">${response.user.username}</a></li>
 % endfor
 </ul>
 
 <p>Other people who did this:
 <ul>
-% for user in others:
-	<li><a href="/compare/${survey.id}/${user.username}">${user.username}</a></li>
+% for response in others:
+	<li><a href="/response/${response.id}">${response.user.username}</a></li>
 % endfor
 </ul>
 </%def>

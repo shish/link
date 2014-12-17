@@ -12,7 +12,7 @@ in the face until they stop doing that :3</p>
 	% for survey in surveys:
 		<li>
 			<a href="/survey/${survey.id}">${survey.name} - ${survey.description}</a>
-			[${survey.user.username}]
+			<!-- [${survey.user.username}] -->
 			% for response in responses:
 				% if response.survey == survey:
 					<%

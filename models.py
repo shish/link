@@ -112,6 +112,7 @@ class Survey(Base):
 
 class Question(Base):
     __tablename__ = "question"
+    entry_type = "question"
 
     id        = Column(Integer, primary_key=True)
     survey_id = Column(Integer, ForeignKey('survey.id'), nullable=False, index=True)
@@ -125,7 +126,7 @@ class Question(Base):
         backref=backref('questions', order_by=[order.asc(), id.asc()])
     )
     flip = relationship(
-        "Question", remote_side=[id], post_update=True,
+        "Question", remote_side=[id], post_update=True, cascade="all",
     )
 
     def __init__(self, text, flip_text=None, extra=None):
@@ -135,11 +136,40 @@ class Question(Base):
             self.flip.flip = self
         self.extra = extra
 
+    def __cmp__(self, other):
+        if self.flip and other.id == self.flip.id:
+            # if comparing with our pair, lower ID comes first
+            return cmp(self.id, other.id)
+        else:
+            # if comparing to an unrelated object, compare by our pair's main ID
+            sort_order = self.order
+            if self.flip and self.flip.id < self.id:
+                sort_order = self.flip.order
+            return cmp(sort_order, other.order)
+
     def matches(self, other):
         if self.flip:
-            return self.flip == other
+            return self.flip.id == other.id
         else:
-            return self == other
+            return self.id == other.id
+
+
+class Heading(Base):
+    __tablename__ = "heading"
+    entry_type = "heading"
+
+    id        = Column(Integer, primary_key=True)
+    survey_id = Column(Integer, ForeignKey('survey.id'), nullable=False, index=True)
+    order     = Column(Float, nullable=False, default=0)
+    text      = Column(Unicode, nullable=False)
+
+    survey = relationship(
+        "Survey",
+        backref=backref('headings', order_by=[order.asc(), id.asc()])
+    )
+
+    def __cmp__(self, other):
+        return cmp(self.order, other.order)
 
 
 class Response(Base):

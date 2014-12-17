@@ -15,15 +15,24 @@ from time import time
 
 urls = (
     '/?', 'surveys',
+    #'/r/(\d+)', 'response',
+
     '/survey', 'surveys',
     '/survey/(\d+)', 'survey',
-    '/question/(\d+)', 'question',
-    '/compare/(\d+)/(.*)', 'compare',
+
+    '/response', 'responses',
+    '/response/(\d+)', 'response',
+
+    '/question', 'questions',
+    '/question/(\d+)/(up|down|remove)', 'question',
+
     '/user', 'user',
     '/user/login', 'login',
     '/user/logout', 'logout',
     '/user/create', 'create',
+
     '/friends', 'friends',
+
     '/(favicon.ico)', 'static',
 )
 site = "http://link.shishnet.org"
@@ -140,33 +149,102 @@ class survey:
 
         survey = orm.query(Survey).get(id)
         response = orm.query(Response).filter(Response.survey==survey, Response.user==user).first()
-        compare = data.get("compareto")
         if response:
 
             friend_ids = [friend.id for friend in user.all_friends]
-            friends = []
-            for other in orm.query(Response).filter(Response.survey==survey, Response.user_id.in_(friend_ids), or_(Response.privacy=="public", Response.privacy=="friends")):
-                friends.append(other.user)
-            others = []
-            for other in orm.query(Response).filter(Response.survey==survey, Response.user!=user, not_(Response.user_id.in_(friend_ids)), Response.privacy=="public"):
-                others.append(other.user)
-            nav = nav + render.others(survey, friends, others)
+            friend_responses = orm.query(Response).filter(Response.survey==survey, Response.user_id.in_(friend_ids), or_(Response.privacy=="public", Response.privacy=="friends"))
+            other_responses = orm.query(Response).filter(Response.survey==survey, Response.user!=user, not_(Response.user_id.in_(friend_ids)), Response.privacy=="public")
+            nav = nav + render.others(survey, friend_responses, other_responses)
 
-            if compare:
-                them = orm.query(User).filter(User.username==compare).one()
-                theirs = orm.query(Response).filter(Response.survey==survey, Response.user==them).first()
-                return render.standard("Survey", survey.name, nav, render.compare(survey, response, theirs))
-            else:
-                return render.standard("Survey", survey.name, nav, render.survey(survey, response))
+            return render.standard("Interest Link", survey.name, nav, render.survey(user, survey, response))
         else:
-            return render.standard("Survey", survey.name, nav, render.survey(survey, None, compareto=compare))
+            return render.standard("Interest Link", survey.name, nav, render.survey(user, survey, None, compare=data.get("compare")))
 
     @handle_exceptions
     @if_logged_in
     def POST(self, id):
         orm = web.ctx.orm
+        data = web.input()
+        user = orm.query(User).filter(User.username==session.username).one()
+        survey = orm.query(Survey).get(id)
+
+        if survey.user != user:
+            raise LinkError("Permission denied", "That is not your survey")
+
+        entries = list(survey.questions) + list(survey.headings)
+        offset = 0
+        for n, entry in enumerate(sorted(entries)):
+            if entry.entry_type == "heading":
+                offset += 10
+            entry.order = n + offset
+
+        web.seeother("/survey/%d" % survey.id)
+
+
+class questions:
+    @handle_exceptions
+    @if_logged_in
+    def POST(self):
+        orm = web.ctx.orm
         post = web.input()
         user = orm.query(User).filter(User.username==session.username).one()
+
+        survey = orm.query(Survey).get(post["survey"])
+        q1 = Question(post["q1"])
+        q1.order = time()
+        if post.get("q1extra"):
+            q1.extra = post.get("q1extra")
+        survey.questions.append(q1)
+        if post.get("q2"):
+            q2 = Question(post["q2"])
+            q2.order = time()
+            if post.get("q2extra"):
+                q1.extra = post.get("q2extra")
+            survey.questions.append(q2)
+            q1.flip = q2
+            q2.flip = q1
+        web.seeother("/survey/%d" % survey.id)
+
+
+class question:
+    @handle_exceptions
+    @if_logged_in
+    def GET(self, id, action):
+        orm = web.ctx.orm
+        user = orm.query(User).filter(User.username==session.username).one()
+
+        question = orm.query(Question).get(id)
+        if question.survey.user != user:
+            raise LinkError("Can't modify questions of other people's surveys")
+
+        if action == "remove":
+            orm.delete(question)
+        elif action == "up":
+            qs = list(question.survey.questions)
+            idx = qs.index(question)
+            if idx == 1:
+                question.order = qs[idx-1].order - 1
+            if idx > 1:
+                question.order = (qs[idx-1].order + qs[idx-2].order) / 2
+        elif action == "down":
+            qs = list(question.survey.questions)
+            idx = qs.index(question)
+            if idx == len(qs) - 1:
+                question.order = qs[idx+1].order + 1
+            if idx < len(qs) - 1:
+                question.order = (qs[idx+1].order + qs[idx+2].order) / 2
+
+        web.seeother("/survey/%d" % question.survey.id)
+
+
+class responses:
+    @handle_exceptions
+    @if_logged_in
+    def POST(self):
+        orm = web.ctx.orm
+        post = web.input()
+        user = orm.query(User).filter(User.username==session.username).one()
+        id = post["survey"]
 
         survey = orm.query(Survey).get(id)
         response = orm.query(Response).filter(Response.survey==survey, Response.user==user).first()
@@ -186,10 +264,42 @@ class survey:
         for q in survey.questions:
             Answer(response=response, question=q, value=post["q%d" % q.id])
 
-        if post.get("compareto"):
-            web.seeother("/compare/%d/%s" % (survey.id, post.get("compareto")))
+        if post.get("compare"):
+            web.seeother("/response/%s" % post.get("compare"))
         else:
             web.seeother("/survey/%d" % survey.id)
+
+
+class response:
+    @handle_exceptions
+    @if_logged_in
+    def GET(self, id):
+        orm = web.ctx.orm
+        data = web.input()
+        user = orm.query(User).filter(User.username==session.username).one()
+        nav = render.control(user)
+
+        theirs = orm.query(Response).get(id)
+        them = theirs.user
+        survey = theirs.survey
+        response = orm.query(Response).filter(Response.survey==survey, Response.user==user).first()
+
+        if response:
+
+            friend_ids = [friend.id for friend in user.all_friends]
+            friend_responses = orm.query(Response).filter(Response.survey==survey, Response.user_id.in_(friend_ids), or_(Response.privacy=="public", Response.privacy=="friends"))
+            other_responses = orm.query(Response).filter(Response.survey==survey, Response.user!=user, not_(Response.user_id.in_(friend_ids)), Response.privacy=="public")
+            nav = nav + render.others(survey, friend_responses, other_responses)
+
+            if (
+                (theirs.privacy == "public") or
+                (theirs.privacy == "friends" and user in them.all_friends)
+            ):
+                return render.standard("Interest Link", survey.name, nav, render.response(survey, response, theirs))
+            else:
+                raise LinkError("Permission denied", "This response is either friends-only or passworded")
+        else:
+            web.seeother("/survey/%d?compare=%s" % (survey.id, theirs.id))
 
     @handle_exceptions
     @if_logged_in
@@ -198,72 +308,10 @@ class survey:
         post = web.input()
         user = orm.query(User).filter(User.username==session.username).one()
 
-        survey = orm.query(Survey).get(id)
-        response = orm.query(Response).filter(Response.survey==survey, Response.user==user).first()
-        if response:
+        response = orm.query(Response).get(id)
+        if response and response.user == user:
             orm.delete(response)
-        web.seeother("/survey/%d" % survey.id)
-
-
-class question:
-    @handle_exceptions
-    @if_logged_in
-    def POST(self, id):
-        orm = web.ctx.orm
-        post = web.input()
-        user = orm.query(User).filter(User.username==session.username).one()
-
-        survey = orm.query(Survey).get(id)
-        q1 = Question(post["q1"])
-        q1.order = time()
-        survey.questions.append(q1)
-        if post.get("q2"):
-            q2 = Question(post["q2"])
-            q2.order = time()
-            survey.questions.append(q2)
-            q1.flip = q2
-            q2.flip = q1
-        web.seeother("/survey/%d" % survey.id)
-
-
-class compare:
-    @handle_exceptions
-    @if_logged_in
-    def GET(self, id, compare):
-        orm = web.ctx.orm
-        data = web.input()
-        user = orm.query(User).filter(User.username==session.username).one()
-        nav = render.control(user)
-
-        survey = orm.query(Survey).get(id)
-        response = orm.query(Response).filter(Response.survey==survey, Response.user==user).first()
-        if response:
-
-            friend_ids = [friend.id for friend in user.all_friends]
-            friends = []
-            for other in orm.query(Response).filter(Response.survey==survey, Response.user_id.in_(friend_ids), or_(Response.privacy=="public", Response.privacy=="friends")):
-                friends.append(other.user)
-            others = []
-            for other in orm.query(Response).filter(Response.survey==survey, Response.user!=user, not_(Response.user_id.in_(friend_ids)), Response.privacy=="public"):
-                others.append(other.user)
-            nav = nav + render.others(survey, friends, others)
-
-            if compare.isnumeric():
-                theirs = orm.query(Response).get(compare)
-                them = theirs.user
-            else:
-                them = orm.query(User).filter(User.username==compare).one()
-                theirs = orm.query(Response).filter(Response.survey==survey, Response.user==them).one()
-
-            if (
-                    (theirs.privacy == "public") or
-                    (theirs.privacy == "friends" and user in them.all_friends)
-            ):
-                return render.standard("Survey", survey.name, nav, render.compare(survey, response, theirs))
-            else:
-                raise LinkError("Permission denied", "This response is either friends-only or passworded")
-        else:
-            web.seeother("/survey/%d?compareto=%s" % (survey.id, compare))
+        web.seeother("/survey/%d" % response.survey.id)
 
 
 class login:
