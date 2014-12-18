@@ -51,20 +51,22 @@ link = "http://link.shishnet.org/response/%d" % (response.id)
 		Privacy:
 		<select name="privacy">
 			<!--
-			<option value="private" ${selectedIf(response and response.privacy=="private")}
+			<option value="private" ${selectedIf(response and response.privacy=="private")|n}
 				>Private (You need to give someone a key for them to see it)</option>
 			-->
-			<option value="friends" ${selectedIf(response and response.privacy=="friends")}
+			<option value="friends" ${selectedIf(response and response.privacy=="friends")|n}
 				>Friends Only (Friends can see, others can't)</option>
-			<option value="hidden" ${selectedIf(response and response.privacy=="hidden")}
+			<option value="hidden" ${selectedIf(response and response.privacy=="hidden")|n}
 				>Hidden (Response will only be given an ID number and not visibly linked to an account)</option>
-			<option value="public" ${selectedIf(response and response.privacy=="public")}
+			<option value="public" ${selectedIf(response and response.privacy=="public")|n}
 				>Public (Show up in the list of people who answered)</option>
 		</select>
 		<input type="submit" value="Save answers">
 	</p>
 
 <p>Response range: want to avoid - willing to try - want to do (with the right person / conditions / etc, in each case)</p>
+<p id="jscontrols"></p>
+
 <table class="zebra">
 <%
 prev = None
@@ -75,13 +77,16 @@ prev = None
 			<td colspan="3"><b>${question.text}</b></td>
 		</tr>
 		% else:
-		<tr>
+		<%
+		val = response.value(question.id) if response else 0
+		%>
+		<tr id="q${question.id}" class="answer a${val}">
 			<td style="white-space: nowrap;">
 			% if survey.user == user:
 				${question.id} - ${question.order}
-				<a href="/question/${question.id}/up">&uarr;</a>
-				<a href="/question/${question.id}/down">&darr;</a>
-				<a href="/question/${question.id}/remove">X</a>
+			##	<a href="/question/${question.id}/up">&uarr;</a>
+			##	<a href="/question/${question.id}/down">&darr;</a>
+			##	<a href="/question/${question.id}/remove">X</a>
 			% endif
 				% if question.flip and question.flip == prev:
 					&nbsp;&nbsp;&rarr;
@@ -89,16 +94,13 @@ prev = None
 				${question.text}
 			</td>
 			<td style="white-space: nowrap;">
-				<%
-				val = response.value(question.id) if response else 0
-				%>
 				Boo!
-				<input type="radio" name="q${question.id}" value="-2" ${checkedIf(val == -2)}>
-				<input type="radio" name="q${question.id}" value="1" ${checkedIf(val == 1)}>
-				<input type="radio" name="q${question.id}" value="2" ${checkedIf(val == 2)}>
+				<input type="radio" name="q${question.id}" value="-2" ${checkedIf(val == -2)|n}>
+				<input type="radio" name="q${question.id}" value="1" ${checkedIf(val == 1)|n}>
+				<input type="radio" name="q${question.id}" value="2" ${checkedIf(val == 2)|n}>
 				Yay!
 				&nbsp;&nbsp;&nbsp;(No response
-				<input type="radio" name="q${question.id}" value="0" ${checkedIf(val == 0)}>)
+				<input type="radio" name="q${question.id}" value="0" ${checkedIf(val == 0)|n}>)
 			</td>
 			<td>${question.extra or ""}</td>
 		</tr>
@@ -122,4 +124,18 @@ prev = None
 </form>
 ##% endif
 
+<script src="/static/jquery-2.1.1.min.js"></script>
+<script>
+$("#jscontrols").append($("<label><input type='checkbox' id='mark'> Highlight unresponded questions</label>"));
+$("#mark").click(function(evt) {
+	if($("#mark").is(":checked")) {
+		console.log("hi");
+		$(".answer.a0").css("background", "#FFFFDD");
+	}
+	else {
+		console.log("bye");
+		$(".answer.a0").css("background", null);
+	}
+});
+</script>
 </%def>
