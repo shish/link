@@ -2,21 +2,10 @@
 
 <div id="body" class="container">
 	<div class="row">
-% if not user:
-		<div class="col-md-9">
-% else:
-		<div class="col-md-12">
-% endif
+		<div class="col-md-5">
 
-<p>How this site works: you say what you like; your friends say what they like;
-the site tells you what you have in common.</p>
-<p>Why? Say I have a terrible secret that I like singing along to S-Club 7, which
-I will never admit to in public. If any of my friends are also into that, then we
-can find each other and have secret S-Club karaoke sessions. My other friends who
-don't like S-Club will never know :D</p>
-<p>This isn't foolproof; somebody could claim to like everything just to see what
-matches they get - but if one of your friends does that, you should punch them
-in the face until they stop doing that :3</p>
+% if user:
+<h2>Lists</h2>
 <ul>
 	% for survey in surveys:
 		<li>
@@ -35,15 +24,24 @@ in the face until they stop doing that :3</p>
 		</li>
 	% endfor
 </ul>
+% else:
+<div class="visible-xs-block visible-sm-block">
+<h2 name="login">Sign In</h2>
+<center>
+<form action="/user/login" method="POST">
+	<table class="form">
+		<tr><th>Username</th><td><input type="text" name="username"></td></tr>
+		<tr><th>Password</th><td><input type="password" name="password"></td></tr>
+		<tr><td colspan="2"><input type="submit" value="Sign in"></td></tr>
+	</table>
+</form>
+</center>
+</div>
 
-		</div>
-% if not user:
-		<div class="col-md-3">
-
-<h3 name="login">Create Account</h3>
+<h2>Create Account</h2>
 <center>
 <form action="/user/create" method="POST">
-	<table id="login" class="form">
+	<table class="form">
 		<tr><th>Username</th><td><input type="text" name="username"></td></tr>
 		<tr><th>Password</th><td><input type="password" name="password1"></td></tr>
 		<tr><th>Repeat</th><td><input type="password" name="password2"></td></tr>
@@ -52,8 +50,22 @@ in the face until they stop doing that :3</p>
 	</table>
 </form>
 </center>
-		</div>
 % endif
+		</div>
+		<div class="col-md-7">
+
+<h2>About</h2>
+<p>How this site works: you say what you like; your friends say what they like;
+the site tells you what you have in common.</p>
+<p>Why? Say I have a terrible secret that I like singing along to S-Club 7, which
+I will never admit to in public. If any of my friends are also into that, then we
+can find each other and have secret S-Club karaoke sessions. My other friends who
+don't like S-Club will never know :D</p>
+<p>This isn't foolproof; somebody could claim to like everything just to see what
+matches they get - but if one of your friends does that, you should punch them
+in the face until they stop doing that :3</p>
+
+		</div>
 	</div>
 </div>
 </%def>
