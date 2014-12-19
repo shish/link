@@ -1,5 +1,16 @@
 <%def name="body(user)">
 
+<style>
+.zebra {
+	width: 100%;
+}
+.zebra TD:first-child {
+	width: 66%;
+}
+.zebra INPUT {
+	width: 100%;
+}
+</style>
 <div id="body" class="container">
 	<div class="row">
 		<div class="col-md-4">
@@ -43,6 +54,9 @@
 			</td>
 			</form>
 		</tr>
+</table>
+
+<h2>Suggested</h2>
 <%
 recommended_d = {}
 for f in user.all_friends:
@@ -57,17 +71,18 @@ recommended = []
 for key, value in recommended_d.items():
     recommended.append((value, key))
 %>
+<table class="zebra">
 	% for n, friend in reversed(sorted(recommended)):
 		<tr>
-			<form action="/friends" method="POST">
 			<td>
-				<input type="hidden" name="their_name" value="${friend.username}">
 				${friend.username} (${n} mutual)
 			</td>
 			<td>
-				<input type="submit" value="Send Request">
+				<form action="/friends" method="POST">
+					<input type="hidden" name="their_name" value="${friend.username}">
+					<input type="submit" value="Send Request">
+				</form>
 			</td>
-			</form>
 		</tr>
 	% endfor
 </table>

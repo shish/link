@@ -59,18 +59,46 @@ def selectedIf(b):
 		</label>
 	</p>
 
-<p>Response range: want to avoid - willing to try - want to do (with the right person / conditions / etc, in each case)</p>
 <p id="jscontrols"></p>
 
 <table class="zebra">
+	<thead>
+	<tr>
+		<th>Thing</th>
+		<th>
+			Want / Will / Won't
+			<a data-toggle="tooltip" data-original-title="Want to do / Will try for somebody else's benefit / Won't do (with the right person / conditions / etc, in each case)"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></a>
+		</th>
+	</tr>
+	</thead>
+	<tbody>
 <%
 prev = None
 %>
 	% for question in sorted(survey.questions + survey.headings):
 		% if question.entry_type == "heading":
+		<%
+		hid = question.text.replace(' ', '')
+		%>
+	</tbody>
+	<thead>
 		<tr>
-			<td colspan="2"><b>${question.text}</b></td>
+			<td colspan="2">
+				<!--
+				<span style="float: right;">
+					<span data-toggle="collapse" data-target=".s${hid}" class="s${hid} collapse in">
+						<span class="glyphicon glyphicon-chevron-up" aria-hidden="true"></span>
+					</span>
+					<span data-toggle="collapse" data-target=".s${hid}" class="s${hid} collapse">
+						<span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
+					</span>
+				</span>
+				-->
+				<b>${question.text}</b>
+			</td>
 		</tr>
+	</thead>
+	<tbody class="s${hid} collapse in">
 		% else:
 		<%
 		val = response.value(question.id) if response else 0
@@ -91,21 +119,24 @@ prev = None
 				<a data-toggle="tooltip" data-original-title="${question.extra}"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></a>
 				% endif
 			</td>
-			<td style="white-space: nowrap; text-align: right;">
-				<label>
-					Boo!
-					<input type="radio" name="q${question.id}" value="-2" ${checkedIf(val == -2)|n}>
-				</label>
-				<input type="radio" name="q${question.id}" value="1" ${checkedIf(val == 1)|n}>
-				<label>
-					<input type="radio" name="q${question.id}" value="2" ${checkedIf(val == 2)|n}>
+			<td class="www">
+				<label class="want">
 					Yay!
+					<input type="radio" name="q${question.id}" value="2" ${checkedIf(val == 2)|n}>
+				</label>
+				<label class="will">
+					<input type="radio" name="q${question.id}" value="1" ${checkedIf(val == 1)|n}>
+				</label>
+				<label class="wont">
+					<input type="radio" name="q${question.id}" value="-2" ${checkedIf(val == -2)|n}>
+					Boo!
 				</label>
 				<span class="visible-md-inline visible-lg-inline">&nbsp;&nbsp;&nbsp;</span>
 				<br class="visible-xs visible-sm">
-				(<label>No response
-				<input type="radio" name="q${question.id}" value="0" ${checkedIf(val == 0)|n}>
-				</label>)
+				<label>
+					(No response
+					<input type="radio" name="q${question.id}" value="0" ${checkedIf(val == 0)|n}>)
+				</label>
 			</td>
 			##<td>${question.extra or ""}</td>
 		</tr>
@@ -114,6 +145,7 @@ prev = None
 		%>
 		% endif
 	% endfor
+	</tbody>
 </table>
 <input type="submit" value="Save answers">
 </form>
