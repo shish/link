@@ -1,5 +1,5 @@
 ## vim:ts=4
-<%def name="body(user, survey, response, compare=None)">
+<%def name="body(user, survey, response, compare=None, nav=None)">
 <%
 def checkedIf(b):
     if b:
@@ -12,34 +12,20 @@ def selectedIf(b):
     return ""
 %>
 
+<div id="body" class="container">
+	<div class="row">
+		<div class="col-md-9">
+
 <p>${survey.description}</p>
 <p>${survey.long_description or ""}</p>
 
 % if response:
-<%
-link = "http://link.shishnet.org/response/%d" % (response.id)
-#if response.privacy == "public":
-#    link = "http://link.shishnet.org/compare/%d/%s" % (survey.id, response.user.username)
-#elif response.privacy == "hidden":
-#    link = "http://link.shishnet.org/compare/%d/%d" % (survey.id, response.id)
-#else:
-#    link = None
-%>
-% if link:
+	<%
+	link = "http://link.shishnet.org/response/%d" % (response.id)
+	%>
 	<p>Give this link to someone so they can compare with you
 	(they'll be prompted to fill in their answers first if they haven't already):
 	<a href="${link}">${link}</a></p>
-% endif
-<form action="/response/${response.id}" method="POST">
-	<input type="hidden" name="_method" value="DELETE">
-	<input type="submit" value="Delete answers">
-</form>
-% endif
-
-% if survey.user == user:
-<form action="/survey/${survey.id}" method="POST">
-	<input type="submit" value="Set order">
-</form>
 % endif
 
 <form action="/response" method="POST">
@@ -49,11 +35,8 @@ link = "http://link.shishnet.org/response/%d" % (response.id)
 	% endif
 	<p>
 		Privacy:
+		<!--
 		<select name="privacy">
-			<!--
-			<option value="private" ${selectedIf(response and response.privacy=="private")|n}
-				>Private (You need to give someone a key for them to see it)</option>
-			-->
 			<option value="friends" ${selectedIf(response and response.privacy=="friends")|n}
 				>Friends Only (Friends can see, others can't)</option>
 			<option value="hidden" ${selectedIf(response and response.privacy=="hidden")|n}
@@ -61,7 +44,19 @@ link = "http://link.shishnet.org/response/%d" % (response.id)
 			<option value="public" ${selectedIf(response and response.privacy=="public")|n}
 				>Public (Show up in the list of people who answered)</option>
 		</select>
-		<input type="submit" value="Save answers">
+		-->
+		<br><label>
+			<input type="radio" name="privacy" value="friends" ${checkedIf(response and response.privacy=="friends")|n}>
+			Friends Only (Friends can see, others can't)
+		</label>
+		<br><label>
+			<input type="radio" name="privacy" value="hidden" ${checkedIf(response and response.privacy=="hidden")|n}>
+			Hidden (Response will only be given an ID number and not visibly linked to an account)
+		</label>
+		<br><label>
+			<input type="radio" name="privacy" value="public" ${checkedIf(response and response.privacy=="public")|n}>
+			Public (Show up in the list of people who answered)
+		</label>
 	</p>
 
 <p>Response range: want to avoid - willing to try - want to do (with the right person / conditions / etc, in each case)</p>
@@ -74,16 +69,16 @@ prev = None
 	% for question in sorted(survey.questions + survey.headings):
 		% if question.entry_type == "heading":
 		<tr>
-			<td colspan="3"><b>${question.text}</b></td>
+			<td colspan="2"><b>${question.text}</b></td>
 		</tr>
 		% else:
 		<%
 		val = response.value(question.id) if response else 0
 		%>
 		<tr id="q${question.id}" class="answer a${val}">
-			<td style="white-space: nowrap;">
+			<td>
 			% if survey.user == user:
-				${question.id} - ${question.order}
+			##	${question.id} - ${question.order}
 			##	<a href="/question/${question.id}/up">&uarr;</a>
 			##	<a href="/question/${question.id}/down">&darr;</a>
 			##	<a href="/question/${question.id}/remove">X</a>
@@ -92,17 +87,27 @@ prev = None
 					&nbsp;&nbsp;&rarr;
 				% endif
 				${question.text}
+				% if question.extra:
+				<a data-toggle="tooltip" data-original-title="${question.extra}"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></a>
+				% endif
 			</td>
-			<td style="white-space: nowrap;">
-				Boo!
-				<input type="radio" name="q${question.id}" value="-2" ${checkedIf(val == -2)|n}>
+			<td style="white-space: nowrap; text-align: right;">
+				<label>
+					Boo!
+					<input type="radio" name="q${question.id}" value="-2" ${checkedIf(val == -2)|n}>
+				</label>
 				<input type="radio" name="q${question.id}" value="1" ${checkedIf(val == 1)|n}>
-				<input type="radio" name="q${question.id}" value="2" ${checkedIf(val == 2)|n}>
-				Yay!
-				&nbsp;&nbsp;&nbsp;(No response
-				<input type="radio" name="q${question.id}" value="0" ${checkedIf(val == 0)|n}>)
+				<label>
+					<input type="radio" name="q${question.id}" value="2" ${checkedIf(val == 2)|n}>
+					Yay!
+				</label>
+				<span class="visible-md-inline visible-lg-inline">&nbsp;&nbsp;&nbsp;</span>
+				<br class="visible-xs visible-sm">
+				(<label>No response
+				<input type="radio" name="q${question.id}" value="0" ${checkedIf(val == 0)|n}>
+				</label>)
 			</td>
-			<td>${question.extra or ""}</td>
+			##<td>${question.extra or ""}</td>
 		</tr>
 		<%
 		prev = question
@@ -113,19 +118,42 @@ prev = None
 <input type="submit" value="Save answers">
 </form>
 
-##% if survey.user == user:
-<p>
-<form action="/question" method="POST">
-	<input type="hidden" name="survey" value="${survey.id}">
-	<input type="text" name="q1" placeholder="Question">
-	<br><input type="text" name="q2" placeholder="Paired opposite (optional)">
-	<br><input type="text" name="q1extra" placeholder="Extra description for Q1">
-	<br><input type="submit" value="Add question">
-</form>
-##% endif
+			##% if survey.user == user:
+			<p>
+			<form action="/question" method="POST">
+				<input type="hidden" name="survey" value="${survey.id}">
+				<input type="text" name="q1" placeholder="Question">
+				<br><input type="text" name="q2" placeholder="Paired opposite (optional)">
+				<br><input type="text" name="q1extra" placeholder="Extra description for Q1">
+				<br><input type="submit" value="Add question">
+			</form>
+			##% endif
+		</div>
+		<div class="col-md-3">
+			${nav|n}
 
-<script src="/static/jquery-2.1.1.min.js"></script>
+			% if response:
+			<form action="/response/${response.id}" method="POST">
+				<input type="hidden" name="_method" value="DELETE">
+				<input type="submit" value="Delete answers">
+			</form>
+			% endif
+
+			% if survey.user == user:
+			<form action="/survey/${survey.id}" method="POST">
+				<input type="submit" value="Set order">
+			</form>
+			% endif
+		</div>
+	</div>
+</div>
+
 <script>
+$(document).ready(function(){
+    $('[data-toggle="tooltip"]').tooltip({
+        placement : 'top'
+    });
+});
 $("#jscontrols").append($("<label><input type='checkbox' id='mark'> Highlight unresponded questions</label>"));
 $("#mark").click(function(evt) {
 	if($("#mark").is(":checked")) {

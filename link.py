@@ -78,7 +78,7 @@ def if_logged_in(func):
         if session.username:
             return func(*args)
         else:
-            web.seeother("/")
+            web.seeother("/#login")
     return splitter
 
 
@@ -87,7 +87,7 @@ def handle_exceptions(func):
         try:
             return func(*args)
         except LinkError, e:
-            return render.standard("Error", e.title, "", e.message)
+            return render.standard(None, e.title, e.message)
         except Exception, e:
             logging.exception("Unhandled exception:")
             #return render.standard("Error", str(e), "", str(e))
@@ -131,11 +131,7 @@ class surveys:
         responses = orm.query(Response).filter(Response.user==user).all()
         surveys = orm.query(Survey)
 
-        if user:
-            nav = render.control(user)
-        else:
-            nav = render.login()
-        return render.standard("Interest Link", "List of Lists", nav, render.surveys(surveys, responses))
+        return render.standard(user, "List of Lists", render.surveys(user, surveys, responses))
 
 
 class survey:
@@ -145,7 +141,6 @@ class survey:
         orm = web.ctx.orm
         data = web.input()
         user = orm.query(User).filter(User.username==session.username).one()
-        nav = render.control(user)
 
         survey = orm.query(Survey).get(id)
         response = orm.query(Response).filter(Response.survey==survey, Response.user==user).first()
@@ -154,11 +149,11 @@ class survey:
             friend_ids = [friend.id for friend in user.all_friends]
             friend_responses = orm.query(Response).filter(Response.survey==survey, Response.user_id.in_(friend_ids), or_(Response.privacy=="public", Response.privacy=="friends"))
             other_responses = orm.query(Response).filter(Response.survey==survey, Response.user!=user, not_(Response.user_id.in_(friend_ids)), Response.privacy=="public")
-            nav = nav + render.others(survey, friend_responses, other_responses)
+            nav = render.others(survey, friend_responses, other_responses)
 
-            return render.standard("Interest Link", survey.name, nav, render.survey(user, survey, response))
+            return render.standard(user, survey.name, render.survey(user, survey, response, nav=nav))
         else:
-            return render.standard("Interest Link", survey.name, nav, render.survey(user, survey, None, compare=data.get("compare")))
+            return render.standard(user, survey.name, render.survey(user, survey, None, compare=data.get("compare")))
 
     @handle_exceptions
     @if_logged_in
@@ -277,7 +272,6 @@ class response:
         orm = web.ctx.orm
         data = web.input()
         user = orm.query(User).filter(User.username==session.username).one()
-        nav = render.control(user)
 
         theirs = orm.query(Response).get(id)
         them = theirs.user
@@ -289,13 +283,13 @@ class response:
             friend_ids = [friend.id for friend in user.all_friends]
             friend_responses = orm.query(Response).filter(Response.survey==survey, Response.user_id.in_(friend_ids), or_(Response.privacy=="public", Response.privacy=="friends"))
             other_responses = orm.query(Response).filter(Response.survey==survey, Response.user!=user, not_(Response.user_id.in_(friend_ids)), Response.privacy=="public")
-            nav = nav + render.others(survey, friend_responses, other_responses)
+            nav = render.others(survey, friend_responses, other_responses)
 
             if (
                 (theirs.privacy == "public") or
                 (theirs.privacy == "friends" and user in them.all_friends)
             ):
-                return render.standard("Interest Link", survey.name, nav, render.response(survey, response, theirs))
+                return render.standard(user, survey.name, render.response(survey, response, theirs, nav))
             else:
                 raise LinkError("Permission denied", "This response is either friends-only or passworded")
         else:
@@ -373,9 +367,8 @@ class friends:
         orm = web.ctx.orm
         data = web.input()
         user = orm.query(User).filter(User.username==session.username).one()
-        nav = render.control(user)
 
-        return render.standard("Interest Link", "Friends", nav, render.friends(user))
+        return render.standard(user, "Friends", render.friends(user))
 
     @handle_exceptions
     def POST(self):

@@ -1,4 +1,13 @@
-<%def name="body(surveys, responses)">
+<%def name="body(user, surveys, responses)">
+
+<div id="body" class="container">
+	<div class="row">
+% if not user:
+		<div class="col-md-9">
+% else:
+		<div class="col-md-12">
+% endif
+
 <p>How this site works: you say what you like; your friends say what they like;
 the site tells you what you have in common.</p>
 <p>Why? Say I have a terrible secret that I like singing along to S-Club 7, which
@@ -26,4 +35,25 @@ in the face until they stop doing that :3</p>
 		</li>
 	% endfor
 </ul>
+
+		</div>
+% if not user:
+		<div class="col-md-3">
+
+<h3 name="login">Create Account</h3>
+<center>
+<form action="/user/create" method="POST">
+	<table id="login" class="form">
+		<tr><td>Username</td><td><input type="text" name="username"></td></tr>
+		<tr><td>Password</td><td><input type="password" name="password1"></td></tr>
+		<tr><td>Repeat</td><td><input type="password" name="password2"></td></tr>
+		<tr><td>Email</td><td><input type="text" name="email" placeholder="Optional"></td></tr>
+		<tr><td colspan="2"><input type="submit" value="Create"></td></tr>
+	</table>
+</form>
+</center>
+		</div>
+% endif
+	</div>
+</div>
 </%def>

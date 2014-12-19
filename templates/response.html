@@ -1,4 +1,8 @@
-<%def name="body(survey, response, theirs)">
+<%def name="body(survey, response, theirs, nav)">
+<div id="body" class="container">
+	<div class="row">
+		<div class="col-md-9">
+
 <h1>Comparing answers for <a href="/survey/${survey.id}">${survey.name}</a>
 % if theirs.privacy == "public" or theirs.privacy == "friends":
 with ${theirs.user.username}
@@ -41,4 +45,11 @@ for my_answer in response.answers:
 		% endif
 	% endfor
 </ul>
+
+		</div>
+		<div class="col-md-3">
+			${nav|n}
+		</div>
+	</div>
+</div>
 </%def>

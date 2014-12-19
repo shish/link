@@ -1,59 +1,100 @@
 <%def name="body(user)">
-<h1>${user.username}'s friend list</h1>
 
-<table width="100%" border="1"><tr>
-	<td width="33%">Confirmed</td>
-	<td width="33%">Sent Requests</td>
-	<td width="33%">Incoming Requests</td>
-</tr><tr>
-	<td>
-<ul>
+<div id="body" class="container">
+	<div class="row">
+		<div class="col-md-4">
+
+<h2>Confirmed</h2>
+<table class="zebra">
 	% for friend in user.all_friends:
-		<li>
-			${friend.username}
-			<form action="/friends" method="POST">
+		<tr>
+			<td>${friend.username}</td>
+			<td><form action="/friends" method="POST">
 				<input type="hidden" name="_method" value="DELETE">
 				<input type="hidden" name="their_name" value="${friend.username}">
 				<input type="submit" value="Remove">
-			</form>
-		</li>
+			</form></td>
+		</tr>
 	% endfor
-</ul>
-	</td>
-	<td>
+</table>
+
+		</div>
+		<div class="col-md-4">
+
+<h2>Sent Requests</h2>
+<table class="zebra">
 	% for request in user.friend_requests_sent:
-		<li>
-			${request.friend_b.username}
-			<form action="/friends" method="POST">
+		<tr>
+			<td>${request.friend_b.username}</td>
+			<td><form action="/friends" method="POST">
 				<input type="hidden" name="_method" value="DELETE">
 				<input type="hidden" name="their_name" value="${request.friend_b.username}">
 				<input type="submit" value="Cancel">
-			</form>
-		</li>
+			</form></td>
+		</tr>
 	% endfor
-		<li>
+		<tr>
 			<form action="/friends" method="POST">
+			<td>
 				<input type="text" name="their_name" placeholder="Their username">
+			</td>
+			<td>
 				<input type="submit" value="Send Request">
+			</td>
 			</form>
-		</li>
-	</td>
-	<td>
-	% for request in user.friend_requests_incoming:
-		<li>
-			${request.friend_a.username}
+		</tr>
+<%
+recommended_d = {}
+for f in user.all_friends:
+    for ff in f.all_friends:
+        if ff in user.all_friends:
+            continue
+        if ff not in recommended_d:
+            recommended_d[ff] = 0
+        recommended_d[ff] += 1
+
+recommended = []
+for key, value in recommended_d.items():
+    recommended.append((value, key))
+%>
+	% for n, friend in reversed(sorted(recommended)):
+		<tr>
 			<form action="/friends" method="POST">
+			<td>
+				<input type="hidden" name="their_name" value="${friend.username}">
+				${friend.username} (${n} mutual)
+			</td>
+			<td>
+				<input type="submit" value="Send Request">
+			</td>
+			</form>
+		</tr>
+	% endfor
+</table>
+
+		</div>
+		<div class="col-md-4">
+
+<h2>Incoming Requests</h2>
+<table class="zebra">
+	% for request in user.friend_requests_incoming:
+		<tr>
+			<td>${request.friend_a.username}</td>
+			<td><form action="/friends" method="POST">
 				<input type="hidden" name="their_name" value="${request.friend_a.username}">
 				<input type="submit" value="Accept">
-			</form>
-			<form action="/friends" method="POST">
+			</form></td>
+			<td><form action="/friends" method="POST">
 				<input type="hidden" name="_method" value="DELETE">
 				<input type="hidden" name="their_name" value="${request.friend_a.username}">
 				<input type="submit" value="Decline">
-			</form>
-		</li>
+			</form></td>
+		</tr>
 	% endfor
-	</td>
-</tr></table>
+</table>
+
+		</div>
+	</div>
+</div>
 </%def>
 

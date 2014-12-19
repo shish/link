@@ -7,9 +7,9 @@ BODY {background: #DDD; margin: 0px}
 }
 #body {
 	background: #EEE;
-	border-top: 1px solid black;
-	border-bottom: 1px solid black;
+	border: 1px solid black;
 	padding: 32px;
+	margin-top: 64px;
 }
 #nav {
 	padding: 8px;
@@ -43,3 +43,8 @@ TABLE.zebra TFOOT TD, TABLE.zebra TFOOT TH {border-top: 2px solid #CCC;}
 TABLE.zebra TR TD {border-bottom: 1px solid #DDD;}
 TABLE.zebra TR:nth-child(odd) {background: #EFEFEF;}
 TABLE.zebra TR:nth-child(even) {background: #E0E0E0;}
+
+LABEL {
+	font-weight: normal;
+	margin-bottom: 0px;
+}
