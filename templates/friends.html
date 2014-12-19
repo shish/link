@@ -58,10 +58,11 @@
 
 <h2>Suggested</h2>
 <%
+req_users = [req.friend_b for req in user.friend_requests_sent] + [req.friend_a for req in user.friend_requests_incoming]
 recommended_d = {}
 for f in user.all_friends:
     for ff in f.all_friends:
-        if ff in user.all_friends:
+        if ff in user.all_friends or ff in req_users:
             continue
         if ff not in recommended_d:
             recommended_d[ff] = 0

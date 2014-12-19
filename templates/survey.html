@@ -35,16 +35,6 @@ def selectedIf(b):
 	% endif
 	<p>
 		Privacy:
-		<!--
-		<select name="privacy">
-			<option value="friends" ${selectedIf(response and response.privacy=="friends")|n}
-				>Friends Only (Friends can see, others can't)</option>
-			<option value="hidden" ${selectedIf(response and response.privacy=="hidden")|n}
-				>Hidden (Response will only be given an ID number and not visibly linked to an account)</option>
-			<option value="public" ${selectedIf(response and response.privacy=="public")|n}
-				>Public (Show up in the list of people who answered)</option>
-		</select>
-		-->
 		<br><label>
 			<input type="radio" name="privacy" value="friends" ${checkedIf(response and response.privacy=="friends")|n}>
 			Friends Only (Friends can see, others can't)
@@ -162,7 +152,7 @@ prev = None
 			##% endif
 		</div>
 		<div class="col-md-3">
-			${nav|n}
+			${nav or ""|n}
 
 			% if response:
 			<form action="/response/${response.id}" method="POST">

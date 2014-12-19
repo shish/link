@@ -87,7 +87,14 @@ def handle_exceptions(func):
         try:
             return func(*args)
         except LinkError, e:
-            return render.standard(None, e.title, e.message)
+            orm = web.ctx.orm
+            user = orm.query(User).filter(User.username==session.username).first()
+            return render.standard(user, e.title, """
+<div id="body" class="container">
+	<div class="row">
+		<div class="col-md-12">%s</div>
+	</div>
+</div>""" % e.message)
         except Exception, e:
             logging.exception("Unhandled exception:")
             #return render.standard("Error", str(e), "", str(e))
@@ -274,6 +281,8 @@ class response:
         user = orm.query(User).filter(User.username==session.username).one()
 
         theirs = orm.query(Response).get(id)
+        if not theirs:
+            raise LinkError("Not Found", "No response~")
         them = theirs.user
         survey = theirs.survey
         response = orm.query(Response).filter(Response.survey==survey, Response.user==user).first()
@@ -315,7 +324,7 @@ class login:
         username = str(form.username)
         password = str(form.password)
 
-        user = web.ctx.orm.query(User).filter(User.username==username).first()
+        user = web.ctx.orm.query(User).filter(User.username.ilike(username)).first()
         if user and user.check_password(password):
             session.username = username
             web.setcookie("username", username)
@@ -345,7 +354,7 @@ class create:
         else:
             email = None
 
-        user = web.ctx.orm.query(User).filter(User.username==username).first()
+        user = web.ctx.orm.query(User).filter(User.username.ilike(username)).first()
         if user == None:
             if password1 == password2:
                 user = User(username, password1, email)
@@ -398,7 +407,7 @@ class friends:
         their_name = data["their_name"]
         user = orm.query(User).filter(User.username==session.username).one()
         try:
-            them = orm.query(User).filter(User.username==their_name).one()
+            them = orm.query(User).filter(User.username.ilike(their_name)).one()
         except Exception:
             raise LinkError("Not found", "User %s not found (note that names are case-sensitive at the moment)" % their_name)
 
