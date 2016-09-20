@@ -1,6 +1,9 @@
 import hashlib
 import bcrypt
 import StringIO
+import logging
+
+log = logging.getLogger(__name__)
 
 from sqlalchemy import create_engine, func, select
 from sqlalchemy import Table, Column, Integer, String, Unicode, Boolean, DateTime, Float
@@ -67,8 +70,15 @@ class User(Base):
         if password_crypt:
             self.password = password_crypt
 
+    def set_password(self, password):
+        self.password = bcrypt.hashpw(password, bcrypt.gensalt())
+
     def check_password(self, password):
         return bcrypt.hashpw(password, self.password) == self.password
+
+    @property
+    def token(self):
+        return hashlib.md5(self.password).hexdigest()
 
     def __repr__(self):
         return "<User('%s')>" % (self.name, )
@@ -137,6 +147,10 @@ class Question(Base):
         self.extra = extra
 
     def __cmp__(self, other):
+        if not other:
+            log.warning("Comparing %r against None" % self)
+            return 0
+
         if self.flip and other.id == self.flip.id:
             # if comparing with our pair, lower ID comes first
             return cmp(self.id, other.id)

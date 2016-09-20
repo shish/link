@@ -133,6 +133,9 @@ session = web.session.Session(
 class surveys:
     @handle_exceptions
     def GET(self):
+        """
+        Display a list of all surveys
+        """
         orm = web.ctx.orm
         user = orm.query(User).filter(User.username==session.username).first()
         responses = orm.query(Response).filter(Response.user==user).all()
@@ -145,6 +148,9 @@ class survey:
     @handle_exceptions
     @if_logged_in
     def GET(self, id):
+        """
+        Display a single survey
+        """
         orm = web.ctx.orm
         data = web.input()
         user = orm.query(User).filter(User.username==session.username).one()
@@ -165,6 +171,9 @@ class survey:
     @handle_exceptions
     @if_logged_in
     def POST(self, id):
+        """
+        Re-distribute sorting IDs for entries in a survey
+        """
         orm = web.ctx.orm
         data = web.input()
         user = orm.query(User).filter(User.username==session.username).one()
@@ -187,24 +196,41 @@ class questions:
     @handle_exceptions
     @if_logged_in
     def POST(self):
+        """
+        Add a new question (assigned to a survey)
+        """
         orm = web.ctx.orm
         post = web.input()
         user = orm.query(User).filter(User.username==session.username).one()
-
         survey = orm.query(Survey).get(post["survey"])
-        q1 = Question(post["q1"])
-        q1.order = time()
-        if post.get("q1extra"):
-            q1.extra = post.get("q1extra")
-        survey.questions.append(q1)
-        if post.get("q2"):
-            q2 = Question(post["q2"])
-            q2.order = time()
-            if post.get("q2extra"):
-                q1.extra = post.get("q2extra")
-            survey.questions.append(q2)
-            q1.flip = q2
-            q2.flip = q1
+
+        order = time()
+        if int(post["heading"]) > 0:
+            heading = orm.query(Heading).get(post["heading"])
+            order = heading.order + (order - int(order))
+
+        if post["heading"] == "-2":
+            h = Heading()
+            h.survey_id = survey.id
+            h.order = order
+            h.text = post["q1"]
+            survey.headings.append(h)
+
+        else:
+            q1 = Question(post["q1"])
+            q1.order = order
+            if post.get("q1extra"):
+                q1.extra = post.get("q1extra")
+            survey.questions.append(q1)
+            if post.get("q2"):
+                q2 = Question(post["q2"])
+                q2.order = order + 0.001
+                if post.get("q2extra"):
+                    q1.extra = post.get("q2extra")
+                survey.questions.append(q2)
+                q1.flip = q2
+                q2.flip = q1
+
         web.seeother("/survey/%d" % survey.id)
 
 
@@ -315,6 +341,55 @@ class response:
         if response and response.user == user:
             orm.delete(response)
         web.seeother("/survey/%d" % response.survey.id)
+
+
+class user:
+    @handle_exceptions
+    @if_logged_in
+    def GET(self):
+        orm = web.ctx.orm
+        user = orm.query(User).filter(User.username==session.username).one()
+        return render.standard(user, "User Settings", render.user(user))
+
+    @handle_exceptions
+    @if_logged_in
+    def POST(self):
+        orm = web.ctx.orm
+        form = web.input()
+        old_password = str(form.old_password)
+        new_username = str(form.new_username)
+        new_password_1 = str(form.new_password_1)
+        new_password_2 = str(form.new_password_2)
+        new_email = str(form.new_email)
+
+        user = orm.query(User).filter(User.username==session.username).one()
+        if user.token != str(form.csrf_token):
+            raise LinkError("Error", "Token error")
+
+        if not user.check_password(old_password):
+            raise LinkError("Error", "Current password incorrect")
+
+        if new_username and new_username != user.username:
+            check_user = web.ctx.orm.query(User).filter(User.username.ilike(new_username)).first()
+            if check_user:
+                raise LinkError("Error", "That username is already taken")
+            else:
+                user.username = new_username
+                session.username = new_username
+                web.setcookie("username", new_username)
+
+        if new_password_1 or new_password_2:
+            if new_password_1 == new_password_2:
+                user.set_password(new_password_1)
+            else:
+                raise LinkError("Error", "New passwords don't match")
+
+        if new_email:
+            user.email = new_email
+        else:
+            user.email = None
+
+        web.seeother("/user")
 
 
 class login:

@@ -45,6 +45,7 @@ H2 {margin-top: 4px; margin-bottom: 4px;}
 .form TH:after {
 	content: ":";
 }
+.form TD SELECT,
 .form TD INPUT[type="text"],
 .form TD INPUT[type="password"],
 .form TD INPUT[type="submit"],

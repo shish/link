@@ -97,8 +97,8 @@ prev = None
 			<td>
 			% if survey.user == user:
 			##	${question.id} - ${question.order}
-			##	<a href="/question/${question.id}/up">&uarr;</a>
-			##	<a href="/question/${question.id}/down">&darr;</a>
+				<a href="/question/${question.id}/up">&uarr;</a>
+				<a href="/question/${question.id}/down">&darr;</a>
 			##	<a href="/question/${question.id}/remove">X</a>
 			% endif
 				% if question.flip and question.flip == prev:
@@ -144,10 +144,21 @@ prev = None
 			<p>
 			<form action="/question" method="POST">
 				<input type="hidden" name="survey" value="${survey.id}">
-				<input type="text" name="q1" placeholder="Question">
-				<br><input type="text" name="q2" placeholder="Paired opposite (optional)">
-				<br><input type="text" name="q1extra" placeholder="Extra description for Q1">
-				<br><input type="submit" value="Add question">
+<table class="form" style="width: 300px;">
+	<tr><td>
+<select name="heading">
+	<option value="-1">Add to end</option>
+% for heading in sorted(survey.headings):
+	<option value="${heading.id}">${heading.text}</option>
+% endfor
+	<option value="-2">Add as heading</option>
+</select>
+	</td></tr>
+	<tr><td><input type="text" name="q1" placeholder="Question" required="required"></td></tr>
+	<tr><td><input type="text" name="q2" placeholder="Paired opposite (optional)"></td></tr>
+	<tr><td><input type="text" name="q1extra" placeholder="Extra description for Q1"></td></tr>
+	<tr><td><input type="submit" value="Add question"></td></tr>
+</table>
 			</form>
 			##% endif
 		</div>
