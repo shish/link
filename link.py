@@ -3,19 +3,15 @@
 import web
 web.config.debug = False
 
-import cgi
-import logging
 import logging.handlers
-import hashlib
 
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy import func, or_, not_, and_
-from models import *
+from models import Friendship, User, Survey, Question, Heading, Response, Answer, engine
 from time import time
 
 urls = (
     '/?', 'surveys',
-    #'/r/(\d+)', 'response',
 
     '/survey', 'surveys',
     '/survey/(\d+)', 'survey',
@@ -73,6 +69,24 @@ def override_method(handler):
     return handler()
 
 
+def handle_exceptions(handler):
+    try:
+        return handler()
+    except LinkError as e:
+        orm = web.ctx.orm
+        user = orm.query(User).filter(User.username==session.username).first()
+        return render.standard(user, e.title, """
+<div id="body" class="container">
+    <div class="row">
+        <div class="col-md-12">%s</div>
+    </div>
+</div>""" % e.message)
+    except Exception:
+        logging.exception("Unhandled exception:")
+        #return render.standard("Error", str(e), "", str(e))
+        raise
+
+
 def if_logged_in(func):
     def splitter(*args):
         if session.username:
@@ -80,26 +94,6 @@ def if_logged_in(func):
         else:
             web.seeother("/#login")
     return splitter
-
-
-def handle_exceptions(func):
-    def logger(*args):
-        try:
-            return func(*args)
-        except LinkError, e:
-            orm = web.ctx.orm
-            user = orm.query(User).filter(User.username==session.username).first()
-            return render.standard(user, e.title, """
-<div id="body" class="container">
-	<div class="row">
-		<div class="col-md-12">%s</div>
-	</div>
-</div>""" % e.message)
-        except Exception, e:
-            logging.exception("Unhandled exception:")
-            #return render.standard("Error", str(e), "", str(e))
-            raise
-    return logger
 
 
 class render_mako:
@@ -123,6 +117,7 @@ render = render_mako(
 app = web.application(urls, globals())
 app.add_processor(load_sqla)
 app.add_processor(override_method)
+app.add_processor(handle_exceptions)
 
 import rediswebpy
 session = web.session.Session(
@@ -136,8 +131,8 @@ def _get_user(username):
         raise LinkError("404", "User '%s' not found" % username)
     return u
 
+
 class surveys:
-    @handle_exceptions
     def GET(self):
         """
         Display a list of all surveys
@@ -151,7 +146,6 @@ class surveys:
 
 
 class survey:
-    @handle_exceptions
     @if_logged_in
     def GET(self, id):
         """
@@ -174,7 +168,6 @@ class survey:
         else:
             return render.standard(user, survey.name, render.survey(user, survey, None, compare=data.get("compare")))
 
-    @handle_exceptions
     @if_logged_in
     def POST(self, id):
         """
@@ -199,7 +192,6 @@ class survey:
 
 
 class questions:
-    @handle_exceptions
     @if_logged_in
     def POST(self):
         """
@@ -241,7 +233,6 @@ class questions:
 
 
 class question:
-    @handle_exceptions
     @if_logged_in
     def GET(self, id, action):
         orm = web.ctx.orm
@@ -272,7 +263,6 @@ class question:
 
 
 class responses:
-    @handle_exceptions
     @if_logged_in
     def POST(self):
         orm = web.ctx.orm
@@ -305,7 +295,6 @@ class responses:
 
 
 class response:
-    @handle_exceptions
     @if_logged_in
     def GET(self, id):
         orm = web.ctx.orm
@@ -320,7 +309,6 @@ class response:
         response = orm.query(Response).filter(Response.survey==survey, Response.user==user).first()
 
         if response:
-
             friend_ids = [friend.id for friend in user.all_friends]
             friend_responses = orm.query(Response).filter(Response.survey==survey, Response.user_id.in_(friend_ids), or_(Response.privacy=="public", Response.privacy=="friends"))
             other_responses = orm.query(Response).filter(Response.survey==survey, Response.user!=user, not_(Response.user_id.in_(friend_ids)), Response.privacy=="public")
@@ -337,7 +325,6 @@ class response:
         else:
             web.seeother("/survey/%d?compare=%s" % (survey.id, theirs.id))
 
-    @handle_exceptions
     @if_logged_in
     def DELETE(self, id):
         orm = web.ctx.orm
@@ -351,14 +338,12 @@ class response:
 
 
 class user:
-    @handle_exceptions
     @if_logged_in
     def GET(self):
         orm = web.ctx.orm
         user = _get_user(session.username)
         return render.standard(user, "User Settings", render.user(user))
 
-    @handle_exceptions
     @if_logged_in
     def POST(self):
         orm = web.ctx.orm
@@ -400,7 +385,6 @@ class user:
 
 
 class login:
-    @handle_exceptions
     def POST(self):
         form = web.input()
         username = str(form.username)
@@ -417,7 +401,6 @@ class login:
 
 
 class logout:
-    @handle_exceptions
     def GET(self):
         log_info("logged out")
         session.kill()
@@ -425,7 +408,6 @@ class logout:
 
 
 class create:
-    @handle_exceptions
     def POST(self):
         form = web.input()
         username = form.username
@@ -437,7 +419,7 @@ class create:
             email = None
 
         user = web.ctx.orm.query(User).filter(User.username.ilike(username)).first()
-        if user == None:
+        if user is None:
             if password1 == password2:
                 user = User(username, password1, email)
                 web.ctx.orm.add(user)
@@ -453,7 +435,6 @@ class create:
 
 
 class friends:
-    @handle_exceptions
     def GET(self):
         orm = web.ctx.orm
         data = web.input()
@@ -461,7 +442,6 @@ class friends:
 
         return render.standard(user, "Friends", render.friends(user))
 
-    @handle_exceptions
     def POST(self):
         orm = web.ctx.orm
         data = web.input()
@@ -482,7 +462,6 @@ class friends:
 
         web.seeother("/friends")
 
-    @handle_exceptions
     def DELETE(self):
         orm = web.ctx.orm
         data = web.input()
@@ -491,7 +470,7 @@ class friends:
         try:
             them = _get_user(their_name)
         except Exception:
-            raise LinkError("Not found", "User %s not found (note that names are case-sensitive at the moment)" % their_name)
+            raise LinkError("Not found", "User %s not found" % their_name)
 
         orm.query(Friendship).filter(or_(
             and_(Friendship.friend_a==user, Friendship.friend_b==them),
@@ -501,9 +480,7 @@ class friends:
         web.seeother("/friends")
 
 
-
 class static:
-    @handle_exceptions
     def GET(self, filename):
         try:
             return file("static/"+filename).read()

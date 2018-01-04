@@ -1,6 +1,5 @@
 import hashlib
 import bcrypt
-import StringIO
 import logging
 
 log = logging.getLogger(__name__)
@@ -10,27 +9,24 @@ from sqlalchemy import Table, Column, Integer, String, Unicode, Boolean, DateTim
 from sqlalchemy import ForeignKey, Table
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy import func, or_, not_, and_
-
-import ConfigParser
-config = ConfigParser.SafeConfigParser()
-config.read("../app/link.cfg")
-host = config.get("database", "hostname")
-user = config.get("database", "username")
-password = config.get("database", "password")
-database = config.get("database", "database")
-engine = create_engine("postgres://%s:%s@%s/%s" % (user, password, host, database), echo=False)
-
-
 from sqlalchemy.ext.declarative import declarative_base
 
+
+def _get_dsn():
+    import ConfigParser
+    config = ConfigParser.SafeConfigParser()
+    config.read("../app/link.cfg")
+    host = config.get("database", "hostname")
+    user = config.get("database", "username")
+    password = config.get("database", "password")
+    database = config.get("database", "database")
+    return "postgres://%s:%s@%s/%s" % (user, password, host, database)
+
+
+engine = create_engine(_get_dsn(), echo=False)
 Base = declarative_base()
 
 
-#friendship = Table(
-#    'friendship', Base.metadata,
-#    Column('friend_a_id', Integer, ForeignKey('user.id'), primary_key=True),
-#    Column('friend_b_id', Integer, ForeignKey('user.id'), primary_key=True)
-#)
 class Friendship(Base):
     __tablename__ = "friendship"
     friend_a_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
@@ -48,20 +44,25 @@ class Friendship(Base):
 class User(Base):
     __tablename__ = "user"
 
-    id       = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)
     username = Column(Unicode, nullable=False, index=True)
     password = Column(String(255), nullable=False)
-    email    = Column(Unicode, default=None, nullable=True)
+    email = Column(Unicode, default=None, nullable=True)
 
     # this relationship is used for persistence
-    friends = relationship("User", secondary=Friendship.__table__,
-                           primaryjoin=id==Friendship.friend_a_id,
-                           secondaryjoin=id==Friendship.friend_b_id,
+    friends = relationship(
+        "User", secondary=Friendship.__table__,
+        primaryjoin=id==Friendship.friend_a_id,
+        secondaryjoin=id==Friendship.friend_b_id,
     )
     friend_requests_incoming = relationship(
-        "Friendship", primaryjoin=and_(id==Friendship.friend_b_id, Friendship.confirmed==False))
+        "Friendship",
+        primaryjoin=and_(id==Friendship.friend_b_id, Friendship.confirmed==False)
+    )
     friend_requests_sent = relationship(
-        "Friendship", primaryjoin=and_(id==Friendship.friend_a_id, Friendship.confirmed==False))
+        "Friendship",
+        primaryjoin=and_(id==Friendship.friend_a_id, Friendship.confirmed==False)
+    )
 
     def __init__(self, username, password, email=None, password_crypt=None):
         self.username = username
@@ -84,26 +85,27 @@ class User(Base):
         return "<User('%s')>" % (self.name, )
 
 
-# this relationship is viewonly and selects across the union of all
-# friends
+# this relationship is viewonly and selects across the union of all friends
 friendship_union = (
     select([Friendship.friend_a_id, Friendship.friend_b_id]).where(Friendship.confirmed==True)
 ).union(
     select([Friendship.friend_b_id, Friendship.friend_a_id]).where(Friendship.confirmed==True)
 ).alias()
 
-User.all_friends = relationship('User',
-                       secondary=friendship_union,
-                       primaryjoin=User.id==friendship_union.c.friend_a_id,
-                       secondaryjoin=User.id==friendship_union.c.friend_b_id,
-                       viewonly=True)
+User.all_friends = relationship(
+    'User',
+    secondary=friendship_union,
+    primaryjoin=User.id==friendship_union.c.friend_a_id,
+    secondaryjoin=User.id==friendship_union.c.friend_b_id,
+    viewonly=True
+)
 
 
 class Survey(Base):
     __tablename__ = "survey"
 
-    id      = Column(Integer, primary_key=True)
-    name    = Column(String, unique=True)
+    id = Column(Integer, primary_key=True)
+    name = Column(String, unique=True)
     user_id = Column(Integer, ForeignKey('user.id'), nullable=False, index=True)
     description = Column(Unicode, nullable=False)
     long_description = Column(Unicode, nullable=False)
@@ -124,12 +126,12 @@ class Question(Base):
     __tablename__ = "question"
     entry_type = "question"
 
-    id        = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)
     survey_id = Column(Integer, ForeignKey('survey.id'), nullable=False, index=True)
-    flip_id   = Column(Integer, ForeignKey('question.id'), nullable=True, index=True)
-    order     = Column(Float, nullable=False, default=0)
-    text      = Column(Unicode, nullable=False)
-    extra     = Column(Unicode, nullable=True)
+    flip_id = Column(Integer, ForeignKey('question.id'), nullable=True, index=True)
+    order = Column(Float, nullable=False, default=0)
+    text = Column(Unicode, nullable=False)
+    extra = Column(Unicode, nullable=True)
 
     survey = relationship(
         "Survey",
@@ -172,10 +174,10 @@ class Heading(Base):
     __tablename__ = "heading"
     entry_type = "heading"
 
-    id        = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)
     survey_id = Column(Integer, ForeignKey('survey.id'), nullable=False, index=True)
-    order     = Column(Float, nullable=False, default=0)
-    text      = Column(Unicode, nullable=False)
+    order = Column(Float, nullable=False, default=0)
+    text = Column(Unicode, nullable=False)
 
     survey = relationship(
         "Survey",
@@ -189,10 +191,10 @@ class Heading(Base):
 class Response(Base):
     __tablename__ = "response"
 
-    id       = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('user.id'), nullable=False, index=True)
     survey_id = Column(Integer, ForeignKey('survey.id'), nullable=False, index=True)
-    privacy  = Column(String, nullable=False, default="private")
+    privacy = Column(String, nullable=False, default="private")
 
     user = relationship(
        "User",
@@ -213,14 +215,14 @@ class Response(Base):
 class Answer(Base):
     __tablename__ = "answer"
 
-    id       = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)
     question_id = Column(Integer, ForeignKey('question.id'), nullable=False, index=True)
     response_id = Column(Integer, ForeignKey('response.id'), nullable=False, index=True)
     value = Column(Integer, nullable=True)
 
     question = relationship(
        "Question",
-	backref=backref("answers", cascade="all", order_by=[id.asc()])
+        backref=backref("answers", cascade="all", order_by=[id.asc()])
     )
     response = relationship(
        "Response",
@@ -235,28 +237,6 @@ class Answer(Base):
             1: "would try",
             2: "like",
         }[self.value]
-
-
-class Key(Base):
-    __tablename__ = "key"
-
-    id       = Column(Integer, primary_key=True)
-    key      = Column(String, unique=True)
-    owner_id = Column(Integer, ForeignKey('user.id'), nullable=False, index=True)
-    survey_id = Column(Integer, ForeignKey('survey.id'), nullable=False, index=True)
-    viewer_id = Column(Integer, ForeignKey('user.id'), nullable=True, index=True)
-
-    owner = relationship(
-       "User", foreign_keys=[owner_id],
-    )
-    survey = relationship(
-       "Survey",
-    )
-    viewer = relationship(
-       "User", foreign_keys=[owner_id],
-    )
-
-
 
 
 metadata = Base.metadata
