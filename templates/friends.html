@@ -60,10 +60,12 @@
 <%
 req_users = [req.friend_b for req in user.friend_requests_sent] + [req.friend_a for req in user.friend_requests_incoming]
 recommended_d = {}
-for f in user.all_friends:
-    for ff in f.all_friends:
-        if ff in user.all_friends or ff in req_users:
+for f in user.all_friends:  # for all friends
+    for ff in f.all_friends:  # for all friends of friends
+        # if the FoF is not already a friend, or a requested friend, or the user themselves
+        if ff in user.all_friends or ff in req_users or ff == user:
             continue
+        # increment their counter
         if ff not in recommended_d:
             recommended_d[ff] = 0
         recommended_d[ff] += 1
