@@ -130,6 +130,12 @@ session = web.session.Session(
     initializer={'username': None})
 
 
+def _get_user(username):
+    u = web.ctx.orm.query(User).filter(func.lower(User.username)==func.lower(username)).first()
+    if not u:
+        raise LinkError("404", "User '%s' not found" % username)
+    return u
+
 class surveys:
     @handle_exceptions
     def GET(self):
@@ -153,7 +159,7 @@ class survey:
         """
         orm = web.ctx.orm
         data = web.input()
-        user = orm.query(User).filter(User.username==session.username).one()
+        user = _get_user(session.username)
 
         survey = orm.query(Survey).get(id)
         response = orm.query(Response).filter(Response.survey==survey, Response.user==user).first()
@@ -176,7 +182,7 @@ class survey:
         """
         orm = web.ctx.orm
         data = web.input()
-        user = orm.query(User).filter(User.username==session.username).one()
+        user = _get_user(session.username)
         survey = orm.query(Survey).get(id)
 
         if survey.user != user:
@@ -201,7 +207,7 @@ class questions:
         """
         orm = web.ctx.orm
         post = web.input()
-        user = orm.query(User).filter(User.username==session.username).one()
+        user = _get_user(session.username)
         survey = orm.query(Survey).get(post["survey"])
 
         order = time()
@@ -239,7 +245,7 @@ class question:
     @if_logged_in
     def GET(self, id, action):
         orm = web.ctx.orm
-        user = orm.query(User).filter(User.username==session.username).one()
+        user = _get_user(session.username)
 
         question = orm.query(Question).get(id)
         if question.survey.user != user:
@@ -271,7 +277,7 @@ class responses:
     def POST(self):
         orm = web.ctx.orm
         post = web.input()
-        user = orm.query(User).filter(User.username==session.username).one()
+        user = _get_user(session.username)
         id = post["survey"]
 
         survey = orm.query(Survey).get(id)
@@ -304,7 +310,7 @@ class response:
     def GET(self, id):
         orm = web.ctx.orm
         data = web.input()
-        user = orm.query(User).filter(User.username==session.username).one()
+        user = _get_user(session.username)
 
         theirs = orm.query(Response).get(id)
         if not theirs:
@@ -322,11 +328,12 @@ class response:
 
             if (
                 (theirs.privacy == "public") or
+                (theirs.privacy == "hidden") or
                 (theirs.privacy == "friends" and user in them.all_friends)
             ):
                 return render.standard(user, survey.name, render.response(survey, response, theirs, nav))
             else:
-                raise LinkError("Permission denied", "This response is either friends-only or passworded")
+                raise LinkError("Not Found", "No response~")
         else:
             web.seeother("/survey/%d?compare=%s" % (survey.id, theirs.id))
 
@@ -335,7 +342,7 @@ class response:
     def DELETE(self, id):
         orm = web.ctx.orm
         post = web.input()
-        user = orm.query(User).filter(User.username==session.username).one()
+        user = _get_user(session.username)
 
         response = orm.query(Response).get(id)
         if response and response.user == user:
@@ -348,7 +355,7 @@ class user:
     @if_logged_in
     def GET(self):
         orm = web.ctx.orm
-        user = orm.query(User).filter(User.username==session.username).one()
+        user = _get_user(session.username)
         return render.standard(user, "User Settings", render.user(user))
 
     @handle_exceptions
@@ -362,7 +369,7 @@ class user:
         new_password_2 = str(form.new_password_2)
         new_email = str(form.new_email)
 
-        user = orm.query(User).filter(User.username==session.username).one()
+        user = _get_user(session.username)
         if user.token != str(form.csrf_token):
             raise LinkError("Error", "Token error")
 
@@ -399,7 +406,7 @@ class login:
         username = str(form.username)
         password = str(form.password)
 
-        user = web.ctx.orm.query(User).filter(User.username.ilike(username)).first()
+        user = _get_user(username)
         if user and user.check_password(password):
             session.username = username
             web.setcookie("username", username)
@@ -450,7 +457,7 @@ class friends:
     def GET(self):
         orm = web.ctx.orm
         data = web.input()
-        user = orm.query(User).filter(User.username==session.username).one()
+        user = _get_user(session.username)
 
         return render.standard(user, "Friends", render.friends(user))
 
@@ -459,9 +466,9 @@ class friends:
         orm = web.ctx.orm
         data = web.input()
         their_name = data["their_name"]
-        user = orm.query(User).filter(User.username==session.username).one()
+        user = _get_user(session.username)
         try:
-            them = orm.query(User).filter(User.username.ilike(their_name)).one()
+            them = _get_user(their_name)
         except Exception:
             raise LinkError("Not found", "User %s not found" % their_name)
 
@@ -480,9 +487,9 @@ class friends:
         orm = web.ctx.orm
         data = web.input()
         their_name = data["their_name"]
-        user = orm.query(User).filter(User.username==session.username).one()
+        user = _get_user(session.username)
         try:
-            them = orm.query(User).filter(User.username.ilike(their_name)).one()
+            them = _get_user(their_name)
         except Exception:
             raise LinkError("Not found", "User %s not found (note that names are case-sensitive at the moment)" % their_name)
 
