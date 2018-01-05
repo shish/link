@@ -197,11 +197,11 @@ class Response(Base):
     privacy = Column(String, nullable=False, default="private")
 
     user = relationship(
-       "User",
+        "User",
         backref=backref('responses', cascade="all")
     )
     survey = relationship(
-       "Survey",
+        "Survey",
         backref=backref('responses', cascade="all")
     )
 
@@ -221,11 +221,11 @@ class Answer(Base):
     value = Column(Integer, nullable=True)
 
     question = relationship(
-       "Question",
+        "Question",
         backref=backref("answers", cascade="all", order_by=[id.asc()])
     )
     response = relationship(
-       "Response",
+        "Response",
         backref=backref('answers', cascade="all")
     )
 
