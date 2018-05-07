@@ -1,6 +1,7 @@
 import hashlib
 import bcrypt
 import logging
+import os
 
 log = logging.getLogger(__name__)
 
@@ -12,18 +13,7 @@ from sqlalchemy import func, or_, not_, and_
 from sqlalchemy.ext.declarative import declarative_base
 
 
-def _get_dsn():
-    import ConfigParser
-    config = ConfigParser.SafeConfigParser()
-    config.read("../app/link.cfg")
-    host = config.get("database", "hostname")
-    user = config.get("database", "username")
-    password = config.get("database", "password")
-    database = config.get("database", "database")
-    return "postgres://%s:%s@%s/%s" % (user, password, host, database)
-
-
-engine = create_engine(_get_dsn(), echo=False)
+engine = create_engine(os.environ['DB_DSN'], echo=False)
 Base = declarative_base()
 
 
@@ -66,16 +56,19 @@ class User(Base):
 
     def __init__(self, username, password, email=None, password_crypt=None):
         self.username = username
-        self.password = bcrypt.hashpw(password, bcrypt.gensalt())
         self.email = email
+        self.set_password(password)
         if password_crypt:
             self.password = password_crypt
 
     def set_password(self, password):
-        self.password = bcrypt.hashpw(password, bcrypt.gensalt())
+        given = password.encode() if isinstance(password, unicode) else password
+        self.password = bcrypt.hashpw(given, bcrypt.gensalt())
 
     def check_password(self, password):
-        return bcrypt.hashpw(password, self.password) == self.password
+        given = password.encode() if isinstance(password, unicode) else password
+        current = self.password.encode() if isinstance(self.password, unicode) else self.password
+        return bcrypt.hashpw(password, current) == current
 
     @property
     def token(self):
