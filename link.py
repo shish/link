@@ -30,6 +30,7 @@ urls = (
     '/friends', 'friends',
 
     '/(favicon.ico)', 'static',
+    '/static/(script.js|style.css)', 'static',
 )
 site = "http://link.shishnet.org"
 
