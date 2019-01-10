@@ -1,6 +1,17 @@
 tl;dr:
 ------
 
+Plain python:
+-------------
+
+```
+pip install web.py mako sqlalchemy bcrypt
+DB_DSN=sqlite:///link.sdb python link.py
+```
+
+Or inside docker:
+-----------------
+
 ```
 docker build -t link .
 docker run -t -p 0.0.0.0:8100:8000 link

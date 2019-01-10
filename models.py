@@ -17,6 +17,13 @@ engine = create_engine(os.environ['DB_DSN'], echo=False)
 Base = declarative_base()
 
 
+class Sessions(Base):
+    __tablename__ = "sessions"
+    session_id = Column(String(128), nullable=False, primary_key=True)
+    atime = Column(DateTime, nullable=False, default=func.now())
+    data = Column(String)
+
+
 class Friendship(Base):
     __tablename__ = "friendship"
     friend_a_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
@@ -233,4 +240,3 @@ class Answer(Base):
 
 
 metadata = Base.metadata
-metadata.create_all(engine)

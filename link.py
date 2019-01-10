@@ -7,8 +7,9 @@ import logging.handlers
 
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy import func, or_, not_, and_
-from models import Friendship, User, Survey, Question, Heading, Response, Answer, engine
+from models import Friendship, User, Survey, Question, Heading, Response, Answer, engine, metadata
 from time import time
+from utils import SiteError, load_sqla, override_method, handle_exceptions, if_logged_in, render_mako, setup_sessions
 
 urls = (
     '/?', 'surveys',
@@ -32,82 +33,8 @@ urls = (
     '/(favicon.ico)', 'static',
     '/static/(script.js|style.css)', 'static',
 )
-site = "http://link.shishnet.org"
+site = "https://link.shishnet.org"
 
-
-def log_info(text):
-    if session.username:
-        logging.info("%s: %s" % (session.username, text))
-    else:
-        logging.info("<anon>: %s" % text)
-
-
-class LinkError(Exception):
-    def __init__(self, title, message):
-        self.title = title
-        self.message = message
-
-
-def load_sqla(handler):
-    web.ctx.orm = scoped_session(sessionmaker(bind=engine))
-    try:
-        return handler()
-    except web.HTTPError:
-        web.ctx.orm.commit()
-        raise
-    except:
-        web.ctx.orm.rollback()
-        raise
-    finally:
-        web.ctx.orm.commit()
-        # If the above alone doesn't work, uncomment
-        # the following line:
-        #web.ctx.orm.expunge_all()
-
-
-def override_method(handler):
-    web.ctx.method = web.input().get("_method", web.ctx.method)
-    return handler()
-
-
-def handle_exceptions(handler):
-    try:
-        return handler()
-    except LinkError as e:
-        orm = web.ctx.orm
-        user = orm.query(User).filter(User.username==session.username).first()
-        return render.standard(user, e.title, """
-<div id="body" class="container">
-    <div class="row">
-        <div class="col-md-12">%s</div>
-    </div>
-</div>""" % e.message)
-    except Exception:
-        logging.exception("Unhandled exception:")
-        #return render.standard("Error", str(e), "", str(e))
-        raise
-
-
-def if_logged_in(func):
-    def splitter(*args):
-        if session.username:
-            return func(*args)
-        else:
-            web.seeother("/#login")
-    return splitter
-
-
-class render_mako:
-    """copied from web.contrib.templates, with t.render_unicode"""
-    def __init__(self, *a, **kwargs):
-        from mako.lookup import TemplateLookup
-        self._lookup = TemplateLookup(*a, **kwargs)
-
-    def __getattr__(self, name):
-        # Assuming all templates are html
-        path = name + ".html"
-        t = self._lookup.get_template(path)
-        return t.render_unicode
 
 render = render_mako(
     directories=["./templates/"],
@@ -121,28 +48,20 @@ app.add_processor(override_method)
 app.add_processor(handle_exceptions)
 
 
-import os, urlparse
-db_info = urlparse.urlparse(os.environ['DB_DSN'])
-if db_info.scheme == "sqlite":
-    session_store = web.session.DiskStore('/db/sessions')
-else:
-    session_store = web.session.DBStore(
-        web.database(
-            dbn=db_info.scheme,
-            host=db_info.hostname,
-            port=db_info.port,
-            db=db_info.path.strip("/"),
-            user=db_info.username,
-            pw=db_info.password),
-        'sessions'
-        )
-session = web.session.Session(app, session_store, initializer={'username': None})
+session = setup_sessions(app, initializer={'username': None})
+
+
+def log_info(text):
+    if session.username:
+        logging.info("%s: %s" % (session.username, text))
+    else:
+        logging.info("<anon>: %s" % text)
 
 
 def _get_user(username):
     u = web.ctx.orm.query(User).filter(func.lower(User.username)==func.lower(username)).first()
     if not u:
-        raise LinkError("404", "User '%s' not found" % username)
+        raise SiteError("404", "User '%s' not found" % username)
     return u
 
 
@@ -193,7 +112,7 @@ class survey:
         survey = orm.query(Survey).get(id)
 
         if survey.user != user:
-            raise LinkError("Permission denied", "That is not your survey")
+            raise SiteError("Permission denied", "That is not your survey")
 
         entries = list(survey.questions) + list(survey.headings)
         offset = 0
@@ -254,7 +173,7 @@ class question:
 
         question = orm.query(Question).get(id)
         if question.survey.user != user:
-            raise LinkError("Can't modify questions of other people's surveys")
+            raise SiteError("Can't modify questions of other people's surveys")
 
         if action == "remove":
             orm.delete(question)
@@ -317,7 +236,7 @@ class response:
 
         theirs = orm.query(Response).get(id)
         if not theirs:
-            raise LinkError("Not Found", "No response~")
+            raise SiteError("Not Found", "No response~")
         them = theirs.user
         survey = theirs.survey
         response = orm.query(Response).filter(Response.survey==survey, Response.user==user).first()
@@ -335,7 +254,7 @@ class response:
             ):
                 return render.standard(user, survey.name, render.response(survey, response, theirs, nav))
             else:
-                raise LinkError("Not Found", "No response~")
+                raise SiteError("Not Found", "No response~")
         else:
             web.seeother("/survey/%d?compare=%s" % (survey.id, theirs.id))
 
@@ -370,15 +289,15 @@ class user:
 
         user = _get_user(session.username)
         if user.token != str(form.csrf_token):
-            raise LinkError("Error", "Token error")
+            raise SiteError("Error", "Token error")
 
         if not user.check_password(old_password):
-            raise LinkError("Error", "Current password incorrect")
+            raise SiteError("Error", "Current password incorrect")
 
         if new_username and new_username != user.username:
             check_user = web.ctx.orm.query(User).filter(User.username.ilike(new_username)).first()
             if check_user:
-                raise LinkError("Error", "That username is already taken")
+                raise SiteError("Error", "That username is already taken")
             else:
                 user.username = new_username
                 session.username = new_username
@@ -388,7 +307,7 @@ class user:
             if new_password_1 == new_password_2:
                 user.set_password(new_password_1)
             else:
-                raise LinkError("Error", "New passwords don't match")
+                raise SiteError("Error", "New passwords don't match")
 
         if new_email:
             user.email = new_email
@@ -411,7 +330,7 @@ class login:
             log_info("logged in from %s" % (web.ctx.ip))
             web.seeother("/")
         else:
-            raise LinkError("Error", "User not found")
+            raise SiteError("Error", "User not found")
 
 
 class logout:
@@ -443,9 +362,9 @@ class create:
                 log_info("User created")
                 web.seeother("/")
             else:
-                raise LinkError("Password Error", "The password and confirmation password don't match D:")
+                raise SiteError("Password Error", "The password and confirmation password don't match D:")
         else:
-            raise LinkError("Name Taken", "That username has already been taken, sorry D:")
+            raise SiteError("Name Taken", "That username has already been taken, sorry D:")
 
 
 class friends:
@@ -464,7 +383,7 @@ class friends:
         try:
             them = _get_user(their_name)
         except Exception:
-            raise LinkError("Not found", "User %s not found" % their_name)
+            raise SiteError("Not found", "User %s not found" % their_name)
 
         incoming = orm.query(Friendship).filter(Friendship.friend_b==user, Friendship.confirmed==False).all()
         for req in incoming:
@@ -484,7 +403,7 @@ class friends:
         try:
             them = _get_user(their_name)
         except Exception:
-            raise LinkError("Not found", "User %s not found" % their_name)
+            raise SiteError("Not found", "User %s not found" % their_name)
 
         orm.query(Friendship).filter(or_(
             and_(Friendship.friend_a==user, Friendship.friend_b==them),
@@ -506,14 +425,10 @@ if __name__ == "__main__":
     logging.basicConfig(
         level=logging.DEBUG,
         format='%(asctime)s %(levelname)-8s %(message)s',
-        #filename="../logs/app.log"
     )
-    #smtp = logging.handlers.SMTPHandler(
-    #    "localhost", "noreply@shishnet.org",
-    #    ["shish+link@shishnet.org", ], "link error report"
-    #)
-    #smtp.setLevel(logging.WARNING)
-    #logging.getLogger('').addHandler(smtp)
+
+    # Create tables if they don't exist
+    metadata.create_all(engine)
 
     logging.info("App starts...")
     app.run()
