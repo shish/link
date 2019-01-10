@@ -1,4 +1,3 @@
-<%def name="body(user, heading, body, description='')">
 <!doctype html>
 <html>
 	<head>
@@ -8,10 +7,10 @@
 		<title>Interest Link - ${heading}</title>
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
 		<link rel="stylesheet" href="/static/style.css">
+		<link rel="icon" type="image/x-icon" href="/static/favicon.ico">
 		<script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
 		<script language="javascript" src="/static/script.js"></script>
-		<meta name="description" content="${description}">
 	</head>
 	<body>
 <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
@@ -72,10 +71,9 @@
         </div><!--/.navbar-collapse -->
       </div>
     </nav>
-		${body|n}
+		${self.body()}
 		<div id="footer">
 			Link software by Shish
 		</div>
 	</body>
 </html>
-</%def>

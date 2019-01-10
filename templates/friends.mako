@@ -1,4 +1,4 @@
-<%def name="body(user)">
+<%inherit file="base.mako"/>
 
 <style>
 .zebra {
@@ -114,5 +114,3 @@ for key, value in recommended_d.items():
 		</div>
 	</div>
 </div>
-</%def>
-

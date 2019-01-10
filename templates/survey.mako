@@ -1,5 +1,4 @@
-## vim:ts=4
-<%def name="body(user, survey, response, compare=None, nav=None)">
+<%inherit file="base.mako"/>
 <%
 def checkedIf(b):
     if b:
@@ -163,7 +162,21 @@ prev = None
 			##% endif
 		</div>
 		<div class="col-md-3">
-			${nav or ""|n}
+			% if friends and others:
+				<p>Friends who did this:
+				<ul>
+				% for fresponse in friends:
+					<li><a href="/response/${fresponse.id}">${fresponse.user.username}</a></li>
+				% endfor
+				</ul>
+
+				<p>Other people who did this:
+				<ul>
+				% for oresponse in others:
+					<li><a href="/response/${oresponse.id}">${oresponse.user.username}</a></li>
+				% endfor
+				</ul>
+			% endif
 
 			% if response:
 			<form action="/response/${response.id}" method="POST">
@@ -199,4 +212,3 @@ $("#mark").click(function(evt) {
 	}
 });
 </script>
-</%def>

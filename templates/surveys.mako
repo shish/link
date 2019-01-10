@@ -1,4 +1,4 @@
-<%def name="body(user, surveys, responses)">
+<%inherit file="base.mako"/>
 
 <div id="body" class="container">
 	<div class="row">
@@ -102,4 +102,3 @@ in the face until they stop doing that :3</p>
 		</div>
 	</div>
 </div>
-</%def>

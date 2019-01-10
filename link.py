@@ -1,115 +1,136 @@
 #!/usr/bin/env python
 
-import web
-web.config.debug = False
-
 import logging.handlers
-
-from sqlalchemy.orm import scoped_session, sessionmaker
-from sqlalchemy import func, or_, not_, and_
-from models import Friendship, User, Survey, Question, Heading, Response, Answer, engine, metadata
+import os
+import random
+import sys
 from time import time
-from utils import SiteError, load_sqla, override_method, handle_exceptions, if_logged_in, render_mako, setup_sessions
 
-urls = (
-    '/?', 'surveys',
+import aiohttp_mako
+from aiohttp import web
+from aiohttp_session import get_session
+from sqlalchemy import and_, func, not_, or_
 
-    '/survey', 'surveys',
-    '/survey/(\d+)', 'survey',
+import models as db
 
-    '/response', 'responses',
-    '/response/(\d+)', 'response',
-
-    '/question', 'questions',
-    '/question/(\d+)/(up|down|remove)', 'question',
-
-    '/user', 'user',
-    '/user/login', 'login',
-    '/user/logout', 'logout',
-    '/user/create', 'create',
-
-    '/friends', 'friends',
-
-    '/(favicon.ico)', 'static',
-    '/static/(script.js|style.css)', 'static',
-)
-site = "https://link.shishnet.org"
+routes = web.RouteTableDef()
 
 
-render = render_mako(
-    directories=["./templates/"],
-    input_encoding='utf-8',
-    output_encoding='utf-8',
-    default_filters=['unicode', 'h'],
-)
-app = web.application(urls, globals())
-app.add_processor(load_sqla)
-app.add_processor(override_method)
-app.add_processor(handle_exceptions)
+def if_logged_in(func):
+    async def splitter(self, *args):
+        session = await get_session(self.request)
+        if "username" in session:
+            return await func(self, *args)
+        else:
+            raise web.HTTPFound("/#login")
+
+    return splitter
 
 
-session = setup_sessions(app, initializer={'username': None})
+class SiteError(Exception):
+    def __init__(self, title, message):
+        self.title = title
+        self.message = message
 
 
-def log_info(text):
-    if session.username:
-        logging.info("%s: %s" % (session.username, text))
-    else:
-        logging.info("<anon>: %s" % text)
-
-
-def _get_user(username):
-    u = web.ctx.orm.query(User).filter(func.lower(User.username)==func.lower(username)).first()
+def _get_user(orm, username):
+    u = (
+        orm.query(db.User)
+        .filter(func.lower(db.User.username) == func.lower(username))
+        .first()
+    )
     if not u:
-        raise SiteError("404", "User '%s' not found" % username)
+        raise web.HTTPNotFound()
     return u
 
 
-class surveys:
-    def GET(self):
+@routes.view("/")
+@routes.view("/survey")
+@aiohttp_mako.template("surveys.mako")
+class Surveys(web.View):
+    async def get(self):
         """
         Display a list of all surveys
         """
-        orm = web.ctx.orm
-        user = orm.query(User).filter(User.username==session.username).first()
-        responses = orm.query(Response).filter(Response.user==user).all()
-        surveys = orm.query(Survey)
+        session = await get_session(self.request)
+        orm = self.request["orm"]
+        user = (
+            orm.query(db.User)
+            .filter(db.User.username == session.get("username"))
+            .first()
+        )
+        responses = orm.query(db.Response).filter(db.Response.user == user).all()
+        surveys = orm.query(db.Survey)
 
-        return render.standard(user, "List of Lists", render.surveys(user, surveys, responses))
+        return {
+            "user": user,
+            "heading": "List of Lists",
+            "surveys": surveys,
+            "responses": responses,
+        }
 
 
-class survey:
+@routes.view(r"/survey/{survey_id:\d+}")
+@aiohttp_mako.template("survey.mako")
+class Survey(web.View):
     @if_logged_in
-    def GET(self, id):
+    async def get(self):
         """
         Display a single survey
         """
-        orm = web.ctx.orm
-        data = web.input()
-        user = _get_user(session.username)
+        orm = self.request["orm"]
+        form = await self.request.post()
+        session = await get_session(self.request)
+        user = _get_user(orm, session["username"])
 
-        survey = orm.query(Survey).get(id)
-        response = orm.query(Response).filter(Response.survey==survey, Response.user==user).first()
+        survey = orm.query(db.Survey).get(self.request.match_info["survey_id"])
+        response = (
+            orm.query(db.Response)
+            .filter(db.Response.survey == survey, db.Response.user == user)
+            .first()
+        )
         if response:
-
             friend_ids = [friend.id for friend in user.all_friends]
-            friend_responses = orm.query(Response).filter(Response.survey==survey, Response.user_id.in_(friend_ids), or_(Response.privacy=="public", Response.privacy=="friends"))
-            other_responses = orm.query(Response).filter(Response.survey==survey, Response.user!=user, not_(Response.user_id.in_(friend_ids)), Response.privacy=="public")
-            nav = render.others(survey, friend_responses, other_responses)
-
-            return render.standard(user, survey.name, render.survey(user, survey, response, nav=nav))
+            friend_responses = orm.query(db.Response).filter(
+                db.Response.survey == survey,
+                db.Response.user_id.in_(friend_ids),
+                or_(db.Response.privacy == "public", db.Response.privacy == "friends"),
+            )
+            other_responses = orm.query(db.Response).filter(
+                db.Response.survey == survey,
+                db.Response.user != user,
+                not_(db.Response.user_id.in_(friend_ids)),
+                db.Response.privacy == "public",
+            )
+            return {
+                "user": user,
+                "heading": survey.name,
+                "survey": survey,
+                "response": response,
+                "friends": friend_responses,
+                "others": other_responses,
+            }
         else:
-            return render.standard(user, survey.name, render.survey(user, survey, None, compare=data.get("compare")))
+            return {
+                "user": user,
+                "heading": survey.name,
+                "survey": survey,
+                "response": None,
+                "friends": None,
+                "others": None,
+                "compare": form.get("compare"),
+            }
 
     @if_logged_in
-    def POST(self, id):
+    async def post(self):
         """
         Re-distribute sorting IDs for entries in a survey
         """
-        orm = web.ctx.orm
-        data = web.input()
-        user = _get_user(session.username)
-        survey = orm.query(Survey).get(id)
+        orm = self.request["orm"]
+        session = await get_session(self.request)
+        user = _get_user(orm, session["username"])
+
+        survey = orm.query(db.Survey).get(self.request.match_info["survey_id"])
 
         if survey.user != user:
             raise SiteError("Permission denied", "That is not your survey")
@@ -121,59 +142,66 @@ class survey:
                 offset += 10
             entry.order = n + offset
 
-        web.seeother("/survey/%d" % survey.id)
+        raise web.HTTPFound("/survey/%d" % survey.id)
 
 
-class questions:
+@routes.view("/question")
+class Questions(web.View):
     @if_logged_in
-    def POST(self):
+    async def post(self):
         """
         Add a new question (assigned to a survey)
         """
-        orm = web.ctx.orm
-        post = web.input()
-        user = _get_user(session.username)
-        survey = orm.query(Survey).get(post["survey"])
+        orm = self.request["orm"]
+        form = await self.request.post()
+
+        survey = orm.query(db.Survey).get(form["survey"])
 
         order = time()
-        if int(post["heading"]) > 0:
-            heading = orm.query(Heading).get(post["heading"])
+        if int(form["heading"]) > 0:
+            heading = orm.query(db.Heading).get(form["heading"])
             order = heading.order + (order - int(order))
 
-        if post["heading"] == "-2":
-            h = Heading()
+        if form["heading"] == "-2":
+            h = db.Heading()
             h.survey_id = survey.id
             h.order = order
-            h.text = post["q1"]
+            h.text = form["q1"]
             survey.headings.append(h)
 
         else:
-            q1 = Question(post["q1"])
+            q1 = db.Question(form["q1"])
             q1.order = order
-            if post.get("q1extra"):
-                q1.extra = post.get("q1extra")
+            if form.get("q1extra"):
+                q1.extra = form.get("q1extra")
             survey.questions.append(q1)
-            if post.get("q2"):
-                q2 = Question(post["q2"])
+            if form.get("q2"):
+                q2 = db.Question(form["q2"])
                 q2.order = order + 0.001
-                if post.get("q2extra"):
-                    q1.extra = post.get("q2extra")
+                if form.get("q2extra"):
+                    q1.extra = form.get("q2extra")
                 survey.questions.append(q2)
                 q1.flip = q2
                 q2.flip = q1
 
-        web.seeother("/survey/%d" % survey.id)
+        raise web.HTTPFound("/survey/%d" % survey.id)
 
 
-class question:
+@routes.view(r"/question/{question_id:\d+}/{action:(remove|up|down)}")
+class Question(web.View):
     @if_logged_in
-    def GET(self, id, action):
-        orm = web.ctx.orm
-        user = _get_user(session.username)
+    async def get(self):
+        """
+        Update a question's location, or remove it
+        """
+        orm = self.request["orm"]
+        session = await get_session(self.request)
+        user = _get_user(orm, session["username"])
 
-        question = orm.query(Question).get(id)
+        question = orm.query(db.Question).get(self.request.match_info["id"])
+        action = self.request.match_info["action"]
         if question.survey.user != user:
-            raise SiteError("Can't modify questions of other people's surveys")
+            raise web.HTTPForbidden()
 
         if action == "remove":
             orm.delete(question)
@@ -181,127 +209,169 @@ class question:
             qs = list(question.survey.questions)
             idx = qs.index(question)
             if idx == 1:
-                question.order = qs[idx-1].order - 1
+                question.order = qs[idx - 1].order - 1
             if idx > 1:
-                question.order = (qs[idx-1].order + qs[idx-2].order) / 2
+                question.order = (qs[idx - 1].order + qs[idx - 2].order) / 2
         elif action == "down":
             qs = list(question.survey.questions)
             idx = qs.index(question)
             if idx == len(qs) - 1:
-                question.order = qs[idx+1].order + 1
+                question.order = qs[idx + 1].order + 1
             if idx < len(qs) - 1:
-                question.order = (qs[idx+1].order + qs[idx+2].order) / 2
+                question.order = (qs[idx + 1].order + qs[idx + 2].order) / 2
 
-        web.seeother("/survey/%d" % question.survey.id)
+        raise web.HTTPFound("/survey/%d" % question.survey.id)
 
 
-class responses:
+@routes.view("/response")
+class Responses(web.View):
     @if_logged_in
-    def POST(self):
-        orm = web.ctx.orm
-        post = web.input()
-        user = _get_user(session.username)
-        id = post["survey"]
+    async def post(self):
+        orm = self.request["orm"]
+        form = await self.request.post()
+        session = await get_session(self.request)
+        user = _get_user(orm, session["username"])
 
-        survey = orm.query(Survey).get(id)
-        response = orm.query(Response).filter(Response.survey==survey, Response.user==user).first()
+        id = form["survey"]
+
+        survey = orm.query(db.Survey).get(id)
+        response = (
+            orm.query(db.Response)
+            .filter(db.Response.survey == survey, db.Response.user == user)
+            .first()
+        )
         if response:
             for answer in response.answers:
                 orm.delete(answer)
         else:
-            response = Response(survey=survey, user=user)
-        if post.get("public") == "on":
+            response = db.Response(survey=survey, user=user)
+        if form.get("public") == "on":
             response.privacy = "public"
         else:
             response.privacy = "private"
 
-        if post.get("privacy"):
-            response.privacy = post.get("privacy")
+        if form.get("privacy"):
+            response.privacy = form.get("privacy")
 
         for q in survey.questions:
-            Answer(response=response, question=q, value=post["q%d" % q.id])
+            db.Answer(response=response, question=q, value=int(form["q%d" % q.id]))
 
-        if post.get("compare"):
-            web.seeother("/response/%s" % post.get("compare"))
+        if form.get("compare"):
+            raise web.HTTPFound("/response/%s" % form.get("compare"))
         else:
-            web.seeother("/survey/%d" % survey.id)
+            raise web.HTTPFound("/survey/%d" % survey.id)
 
 
-class response:
+@routes.view(r"/response/{response_id:\d+}")
+@aiohttp_mako.template("response.mako")
+class Response(web.View):
     @if_logged_in
-    def GET(self, id):
-        orm = web.ctx.orm
-        data = web.input()
-        user = _get_user(session.username)
+    async def get(self):
+        orm = self.request["orm"]
+        session = await get_session(self.request)
+        user = _get_user(orm, session["username"])
 
-        theirs = orm.query(Response).get(id)
+        theirs = orm.query(db.Response).get(self.request.match_info["response_id"])
         if not theirs:
-            raise SiteError("Not Found", "No response~")
+            raise web.HTTPNotFound()
         them = theirs.user
         survey = theirs.survey
-        response = orm.query(Response).filter(Response.survey==survey, Response.user==user).first()
+        response = (
+            orm.query(db.Response)
+            .filter(db.Response.survey == survey, db.Response.user == user)
+            .first()
+        )
 
         if response:
             friend_ids = [friend.id for friend in user.all_friends]
-            friend_responses = orm.query(Response).filter(Response.survey==survey, Response.user_id.in_(friend_ids), or_(Response.privacy=="public", Response.privacy=="friends"))
-            other_responses = orm.query(Response).filter(Response.survey==survey, Response.user!=user, not_(Response.user_id.in_(friend_ids)), Response.privacy=="public")
-            nav = render.others(survey, friend_responses, other_responses)
+            friend_responses = orm.query(db.Response).filter(
+                db.Response.survey == survey,
+                db.Response.user_id.in_(friend_ids),
+                or_(db.Response.privacy == "public", db.Response.privacy == "friends"),
+            )
+            other_responses = orm.query(db.Response).filter(
+                db.Response.survey == survey,
+                db.Response.user != user,
+                not_(db.Response.user_id.in_(friend_ids)),
+                db.Response.privacy == "public",
+            )
 
             if (
-                (theirs.privacy == "public") or
-                (theirs.privacy == "hidden") or
-                (theirs.privacy == "friends" and user in them.all_friends)
+                (theirs.privacy == "public")
+                or (theirs.privacy == "hidden")
+                or (theirs.privacy == "friends" and user in them.all_friends)
             ):
-                return render.standard(user, survey.name, render.response(survey, response, theirs, nav))
+                return {
+                    "user": user,
+                    "heading": survey.name,
+                    "survey": survey,
+                    "response": response,
+                    "theirs": theirs,
+                    "friends": friend_responses,
+                    "others": other_responses,
+                }
             else:
-                raise SiteError("Not Found", "No response~")
+                raise web.HTTPNotFound()
         else:
-            web.seeother("/survey/%d?compare=%s" % (survey.id, theirs.id))
+            raise web.HTTPFound("/survey/%d?compare=%s" % (survey.id, theirs.id))
+
+    async def post(self):
+        form = await self.request.post()
+        if form.get("_method") == "DELETE":
+            return await self.delete()
 
     @if_logged_in
-    def DELETE(self, id):
-        orm = web.ctx.orm
-        post = web.input()
-        user = _get_user(session.username)
+    async def delete(self):
+        orm = self.request["orm"]
+        session = await get_session(self.request)
+        user = _get_user(orm, session["username"])
 
-        response = orm.query(Response).get(id)
+        response = orm.query(db.Response).get(self.request.match_info["response_id"])
         if response and response.user == user:
             orm.delete(response)
-        web.seeother("/survey/%d" % response.survey.id)
+        raise web.HTTPFound("/survey/%d" % response.survey.id)
 
 
-class user:
+@routes.view("/user")
+@aiohttp_mako.template("user.mako")
+class User(web.View):
     @if_logged_in
-    def GET(self):
-        orm = web.ctx.orm
-        user = _get_user(session.username)
-        return render.standard(user, "User Settings", render.user(user))
+    async def get(self):
+        orm = self.request["orm"]
+        session = await get_session(self.request)
+        user = _get_user(orm, session["username"])
+
+        return {"user": user, "heading": "User Settings"}
 
     @if_logged_in
-    def POST(self):
-        orm = web.ctx.orm
-        form = web.input()
-        old_password = str(form.old_password)
-        new_username = str(form.new_username)
-        new_password_1 = str(form.new_password_1)
-        new_password_2 = str(form.new_password_2)
-        new_email = str(form.new_email)
+    async def post(self):
+        orm = self.request["orm"]
+        form = await self.request.post()
+        session = await get_session(self.request)
 
-        user = _get_user(session.username)
-        if user.token != str(form.csrf_token):
+        old_password = str(form["old_password"])
+        new_username = str(form["new_username"])
+        new_password_1 = str(form["new_password_1"])
+        new_password_2 = str(form["new_password_2"])
+        new_email = str(form["new_email"])
+
+        user = _get_user(orm, session["username"])
+        if user.token != str(form["csrf_token"]):
             raise SiteError("Error", "Token error")
 
         if not user.check_password(old_password):
             raise SiteError("Error", "Current password incorrect")
 
         if new_username and new_username != user.username:
-            check_user = web.ctx.orm.query(User).filter(User.username.ilike(new_username)).first()
+            check_user = (
+                orm.query(db.User).filter(db.User.username.ilike(new_username)).first()
+            )
             if check_user:
                 raise SiteError("Error", "That username is already taken")
             else:
                 user.username = new_username
                 session.username = new_username
-                web.setcookie("username", new_username)
+                # FIXME: web.setcookie("username", new_username)
 
         if new_password_1 or new_password_2:
             if new_password_1 == new_password_2:
@@ -314,121 +384,254 @@ class user:
         else:
             user.email = None
 
-        web.seeother("/user")
+        raise web.HTTPFound("/user")
 
 
-class login:
-    def POST(self):
-        form = web.input()
-        username = str(form.username)
-        password = str(form.password)
+@routes.view("/user/login")
+class Login(web.View):
+    async def post(self):
+        orm = self.request["orm"]
+        form = await self.request.post()
+        session = await get_session(self.request)
 
-        user = _get_user(username)
+        username = str(form["username"])
+        password = str(form["password"])
+
+        user = _get_user(orm, username)
         if user and user.check_password(password):
-            session.username = username
-            web.setcookie("username", username)
-            log_info("logged in from %s" % (web.ctx.ip))
-            web.seeother("/")
+            session["username"] = username
+            # FIXME: web.setcookie("username", username)
+            logging.info(
+                f"{session['username']}: logged in from {self.request.transport.get_extra_info('peername')[0]}"
+            )
+            raise web.HTTPFound("/")
         else:
-            raise SiteError("Error", "User not found")
+            raise web.HTTPNotFound()
 
 
-class logout:
-    def GET(self):
-        log_info("logged out")
-        session.kill()
-        web.seeother("/")
+@routes.view("/user/logout")
+class Logout(web.View):
+    async def get(self):
+        session = await get_session(self.request)
+        if "username" in session:
+            logging.info(f"{session['username']}: logged out")
+            del session["username"]
+        raise web.HTTPFound("/")
 
 
-class create:
-    def POST(self):
-        form = web.input()
-        username = form.username
-        password1 = form.password1
-        password2 = form.password2
-        if len(form.email) > 0:
-            email = form.email
-        else:
-            email = None
+@routes.view("/user/create")
+class Create(web.View):
+    async def post(self):
+        orm = self.request["orm"]
+        form = await self.request.post()
+        session = await get_session(self.request)
 
-        user = web.ctx.orm.query(User).filter(User.username.ilike(username)).first()
+        username = form["username"]
+        password1 = form["password1"]
+        password2 = form["password2"]
+        email = form.get("email") or None  # cast empty string to None
+
+        user = orm.query(db.User).filter(db.User.username.ilike(username)).first()
         if user is None:
             if password1 == password2:
-                user = User(username, password1, email)
-                web.ctx.orm.add(user)
-                web.ctx.orm.commit()
+                user = db.User(username, password1, email)
+                orm.add(user)
 
-                session.username = username
-                log_info("User created")
-                web.seeother("/")
+                session["username"] = username
+                logging.info(f"{session['username']}: User created")
+                raise web.HTTPFound("/")
             else:
-                raise SiteError("Password Error", "The password and confirmation password don't match D:")
+                raise SiteError(
+                    "Password Error",
+                    "The password and confirmation password don't match D:",
+                )
         else:
-            raise SiteError("Name Taken", "That username has already been taken, sorry D:")
+            raise SiteError(
+                "Name Taken", "That username has already been taken, sorry D:"
+            )
 
 
-class friends:
-    def GET(self):
-        orm = web.ctx.orm
-        data = web.input()
-        user = _get_user(session.username)
+@routes.view("/friends")
+@aiohttp_mako.template("friends.mako")
+class Friends(web.View):
+    async def get(self):
+        orm = self.request["orm"]
+        session = await get_session(self.request)
+        user = _get_user(orm, session["username"])
 
-        return render.standard(user, "Friends", render.friends(user))
+        return {"user": user, "heading": "Friends"}
 
-    def POST(self):
-        orm = web.ctx.orm
-        data = web.input()
-        their_name = data["their_name"]
-        user = _get_user(session.username)
+    async def post(self):
+        form = await self.request.post()
+        if form.get("_method") == "DELETE":
+            return await self.delete()
+
+        orm = self.request["orm"]
+        form = await self.request.post()
+        session = await get_session(self.request)
+        user = _get_user(orm, session["username"])
+
+        their_name = form["their_name"]
         try:
-            them = _get_user(their_name)
+            them = _get_user(orm, their_name)
         except Exception:
-            raise SiteError("Not found", "User %s not found" % their_name)
+            raise web.HTTPNotFound()
 
-        incoming = orm.query(Friendship).filter(Friendship.friend_b==user, Friendship.confirmed==False).all()
+        incoming = (
+            orm.query(db.Friendship)
+            .filter(db.Friendship.friend_b == user, db.Friendship.confirmed == False)
+            .all()
+        )
         for req in incoming:
             if req.friend_a == them:
                 req.confirmed = True
                 break
         else:
-            orm.add(Friendship(friend_a=user, friend_b=them))
+            orm.add(db.Friendship(friend_a=user, friend_b=them))
 
-        web.seeother("/friends")
+        raise web.HTTPFound("/friends")
 
-    def DELETE(self):
-        orm = web.ctx.orm
-        data = web.input()
-        their_name = data["their_name"]
-        user = _get_user(session.username)
+    async def delete(self):
+        orm = self.request["orm"]
+        form = await self.request.post()
+        session = await get_session(self.request)
+        user = _get_user(orm, session["username"])
+
+        their_name = form["their_name"]
         try:
-            them = _get_user(their_name)
+            them = _get_user(orm, their_name)
         except Exception:
-            raise SiteError("Not found", "User %s not found" % their_name)
+            raise web.HTTPNotFound()
 
-        orm.query(Friendship).filter(or_(
-            and_(Friendship.friend_a==user, Friendship.friend_b==them),
-            and_(Friendship.friend_a==them, Friendship.friend_b==user),
-        )).delete()
+        orm.query(db.Friendship).filter(
+            or_(
+                and_(db.Friendship.friend_a == user, db.Friendship.friend_b == them),
+                and_(db.Friendship.friend_a == them, db.Friendship.friend_b == user),
+            )
+        ).delete()
 
-        web.seeother("/friends")
+        raise web.HTTPFound("/friends")
 
 
-class static:
-    def GET(self, filename):
+def populate_data(session_factory):
+    orm = session_factory()
+
+    alice = orm.query(db.User).filter(db.User.username == "Alice").first()
+    if not alice:
+        alice = db.User("Alice", "alicepass")
+        orm.add(alice)
+
+    bob = orm.query(db.User).filter(db.User.username == "Bob").first()
+    if not bob:
+        bob = db.User("Bob", "bobpass")
+        orm.add(bob)
+
+    pets = orm.query(db.Survey).filter(db.Survey.name == "Pets").first()
+    if not pets:
+        pets = db.Survey(
+            name="Pets",
+            user=alice,
+            description="What type of pet should we get?",
+            long_description="",
+        )
+        orm.add(pets)
+
+        pets.set_questions(
+            [
+                db.Question("Cats"),
+                db.Question("Dogs"),
+                db.Question("Rabbits"),
+                db.Question("Human (I am the owner)", "Human (I am the pet)"),
+                db.Question("Humans", extra="As in children"),
+                db.Question("Birds"),
+                db.Question("Lizards"),
+            ]
+        )
+
+        r = db.Response(survey=pets, user=alice)
+        for q in pets.questions:
+            db.Answer(response=r, question=q, value=random.choice([-2, -1, 0, 1, 2]))
+        orm.add(r)
+
+        r = db.Response(survey=pets, user=bob)
+        for q in pets.questions:
+            db.Answer(response=r, question=q, value=random.choice([-2, -1, 0, 1, 2]))
+        orm.add(r)
+
+    orm.commit()
+
+
+def main(argv):
+    logging.basicConfig(
+        level=logging.DEBUG, format="%(asctime)s %(levelname)-8s %(message)s"
+    )
+
+    for arg in argv:
+        k, _, v = arg.partition("=")
+        os.environ[k] = v
+
+    logging.info("App starts...")
+
+    # Database
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+
+    engine = create_engine(os.environ["DB_DSN"], echo=False)
+    db.Base.metadata.create_all(engine)
+    session_factory = sessionmaker(bind=engine)
+
+    @web.middleware
+    async def add_db(request, handler):
+        request["orm"] = session_factory()
         try:
-            return file("static/"+filename).read()
-        except:
-            return "not found"
+            resp = await handler(request)
+        finally:
+            request["orm"].commit()
+            request["orm"].close()
+        return resp
+
+    populate_data(session_factory)
+
+    app = web.Application(middlewares=[add_db])
+
+    # Templates
+    aiohttp_mako.setup(
+        app,
+        directories=["./templates/"],
+        input_encoding="utf-8",
+        output_encoding="utf-8",
+        default_filters=["unicode", "h"],
+    )
+
+    # Sessions
+    import base64
+    from cryptography import fernet
+    from aiohttp_session import setup
+    from aiohttp_session.cookie_storage import EncryptedCookieStorage
+
+    if os.environ.get("SECRET"):
+        fernet_key = os.environ["SECRET"].encode()
+    else:
+        fernet_key = fernet.Fernet.generate_key()
+        print("SECRET=" + fernet_key.decode())
+    secret_key = base64.urlsafe_b64decode(fernet_key)
+    setup(app, EncryptedCookieStorage(secret_key))
+
+    # Reloader
+    try:
+        import aiohttp_autoreload
+
+        aiohttp_autoreload.start()
+    except ImportError:
+        pass
+
+    # Setup Routes
+    app.add_routes(routes)
+    app.router.add_static("/static/", path="./static/", name="static")
+
+    # Go!
+    web.run_app(app, port=8000)
 
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format='%(asctime)s %(levelname)-8s %(message)s',
-    )
-
-    # Create tables if they don't exist
-    metadata.create_all(engine)
-
-    logging.info("App starts...")
-    app.run()
+    main(sys.argv)

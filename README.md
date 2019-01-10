@@ -4,12 +4,17 @@ tl;dr:
 Plain python:
 -------------
 
-Using Python 2.7, because web.py doesn't support py3 :(
+Using Python 3.6+
 
 ```
-pip install web.py mako sqlalchemy bcrypt
-DB_DSN=sqlite:///link.sdb python link.py
+pip install -r requirements.txt
+python link.py DB_DSN=sqlite:///link.sdb
 ```
+
+When run like that it'll print out `SECRET=<random string>` - this is the
+randomly generated session encryption key. You can then add `SECRET=...`
+after `DB_DSN=...` to make sure that cookies stay compatible between site
+reloads.
 
 Or inside docker:
 -----------------

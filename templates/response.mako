@@ -1,4 +1,5 @@
-<%def name="body(survey, response, theirs, nav)">
+<%inherit file="base.mako"/>
+
 <div id="body" class="container">
 	<div class="row">
 		<div class="col-md-9">
@@ -48,8 +49,21 @@ for my_answer in response.answers:
 
 		</div>
 		<div class="col-md-3">
-			${nav|n}
+			% if friends and others:
+				<p>Friends who did this:
+				<ul>
+				% for fresponse in friends:
+					<li><a href="/response/${fresponse.id}">${fresponse.user.username}</a></li>
+				% endfor
+				</ul>
+
+				<p>Other people who did this:
+				<ul>
+				% for oresponse in others:
+					<li><a href="/response/${oresponse.id}">${oresponse.user.username}</a></li>
+				% endfor
+				</ul>
+			% endif
 		</div>
 	</div>
 </div>
-</%def>

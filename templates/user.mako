@@ -1,4 +1,4 @@
-<%def name="body(user)">
+<%inherit file="base.mako"/>
 
 <div id="body" class="container">
 	<div class="row">
@@ -38,5 +38,3 @@
 		</div>
 	</div>
 </div>
-</%def>
-
