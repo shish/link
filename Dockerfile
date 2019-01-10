@@ -6,7 +6,8 @@ EXPOSE 8000
 
 ENV PYTHONUNBUFFERED 1
 RUN /usr/local/bin/pip install --upgrade pip setuptools wheel
-RUN /usr/local/bin/pip install -r requirements.txt
+COPY requirements.txt /tmp/requirements.txt
+RUN /usr/local/bin/pip install -r /tmp/requirements.txt
 
 COPY . /app
 WORKDIR /app
