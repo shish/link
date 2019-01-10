@@ -1,4 +1,6 @@
 link.cfg
+link.sdb
+sessions/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
