@@ -8,6 +8,7 @@ ENV PYTHONUNBUFFERED 1
 RUN /usr/local/bin/pip install --upgrade pip setuptools wheel
 COPY requirements.txt /tmp/requirements.txt
 RUN /usr/local/bin/pip install -r /tmp/requirements.txt
+RUN /usr/local/bin/pip install psycopg2-binary
 
 COPY . /app
 WORKDIR /app
