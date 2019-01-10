@@ -1,5 +1,6 @@
 FROM python:2.7-slim-stretch
-ENV DB_DSN=postgres://foo:bar@172.17.0.1/mydatabase
+ENV DB_DSN=sqlite:////db/link.sdb
+VOLUME /db
 EXPOSE 8000
 
 ENV PYTHONUNBUFFERED 1

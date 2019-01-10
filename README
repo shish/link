@@ -1,4 +1,13 @@
-This assumes you have a postgres database running on your docker host already
+tl;dr:
+------
 
+```
 docker build -t link .
-docker run -e DB_DSN=postgres://DB_USER:DB_PASS@172.17.0.1:5432/link -p 127.0.0.1:8810:8000 -t link
+docker run -t -p 0.0.0.0:8100:8000 link
+```
+
+And then the website should be visible at http://localhost:8100/
+
+By default we use an sqlite database in `/db`, which will be wiped when the container stops
+
+If you want to use an external database, add `-e DB_DSN=postgres://user:password@hostname/database` after `run`

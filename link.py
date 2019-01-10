@@ -123,9 +123,10 @@ app.add_processor(handle_exceptions)
 
 import os, urlparse
 db_info = urlparse.urlparse(os.environ['DB_DSN'])
-session = web.session.Session(
-    app,
-    web.session.DBStore(
+if db_info.scheme == "sqlite":
+    session_store = web.session.DiskStore('/db/sessions')
+else:
+    session_store = web.session.DBStore(
         web.database(
             dbn=db_info.scheme,
             host=db_info.hostname,
@@ -134,9 +135,8 @@ session = web.session.Session(
             user=db_info.username,
             pw=db_info.password),
         'sessions'
-    ),
-    initializer={'username': None}
-)
+        )
+session = web.session.Session(app, session_store, initializer={'username': None})
 
 
 def _get_user(username):

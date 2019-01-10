@@ -233,6 +233,4 @@ class Answer(Base):
 
 
 metadata = Base.metadata
-
-if __name__ == "__main__":
-    metadata.create_all(engine)
+metadata.create_all(engine)
