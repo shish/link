@@ -4,6 +4,8 @@ tl;dr:
 Plain python:
 -------------
 
+Using Python 2.7, because web.py doesn't support py3 :(
+
 ```
 pip install web.py mako sqlalchemy bcrypt
 DB_DSN=sqlite:///link.sdb python link.py
