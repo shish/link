@@ -406,7 +406,7 @@ class Login(web.View):
             )
             raise web.HTTPFound("/")
         else:
-            raise web.HTTPNotFound()
+            raise web.HTTPUnauthorized()
 
 
 @routes.view("/user/logout")
