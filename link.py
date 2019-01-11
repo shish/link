@@ -571,6 +571,7 @@ def main(argv):
         os.environ[k] = v
 
     logging.info("App starts...")
+    app = web.Application()
 
     # Database
     from sqlalchemy import create_engine
@@ -590,9 +591,8 @@ def main(argv):
             request["orm"].close()
         return resp
 
+    app.middlewares.append(add_db)
     populate_data(session_factory)
-
-    app = web.Application(middlewares=[add_db])
 
     # Templates
     aiohttp_mako.setup(
