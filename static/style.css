@@ -1,57 +1,16 @@
-BODY {background: #DDD; margin: 0px}
+BODY {background: #DDD;}
 
-#header, #footer {
+FOOTER {
 	text-align: center;
-	clear: both;
-	padding: 16px;
+	font-size: 0.75em;
+	margin: 16px;
 }
-#body {
+MAIN {
 	background: #EEE;
 	border: 1px solid black;
-	padding: 15px;
-	margin-top: 64px;
+	padding-bottom: 16px;
 }
-@media (max-width: 992px) {
-	#body {
-		margin-top: 0px;
-		padding-top: 64px;
-		border: 0px;
-		border-bottom: 1px solid black;
-	}
-}
-#nav {
-	padding: 8px;
-	background: #EEE;
-	float: right;
-	width: 256px;
-	margin: 16px;
-	display: block;
-	border: 1px solid #CCC;
-}
-#footer {
-	font-size: 0.75em;
-}
-
-H1 {margin-top: 0px; margin-bottom: 0px;}
-H2 {margin-top: 4px; margin-bottom: 4px;}
-
-#nav TABLE {
-	margin: auto;
-}
-.form TH {
-	text-align: right;
-	padding-right: 4px;
-}
-.form TH:after {
-	content: ":";
-}
-.form TD SELECT,
-.form TD INPUT[type="text"],
-.form TD INPUT[type="password"],
-.form TD INPUT[type="submit"],
-.form TD TEXTAREA {
-	width: 100%;
-}
+H3 {margin-top: 16px;}
 
 TABLE.zebra {border-spacing: 0px; border: 2px solid #CCC;}
 TABLE.zebra TD, TABLE.zebra TH {vertical-align: middle; padding: 4px;}
@@ -65,13 +24,14 @@ LABEL {
 	font-weight: normal;
 	margin-bottom: 0px;
 }
+
 .www {
 	white-space: nowrap;
 	text-align: right;
 }
 .www INPUT {
 	vertical-align: middle;
-	margin-top: -1px;
+	margin-top: -6px;
 }
 .www LABEL {
 	padding: 0px 4px;

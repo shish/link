@@ -3,77 +3,52 @@
 	<head>
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 		<title>Interest Link - ${heading}</title>
-		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/css/bootstrap.min.css" integrity="sha384-Smlep5jCw/wG7hdkwQ/Z5nLIefveQRIY9nfy6xoR1uRYBtpZgI6339F5dgvm/e9B" crossorigin="anonymous">
 		<link rel="stylesheet" href="/static/style.css">
 		<link rel="icon" type="image/x-icon" href="/static/favicon.ico">
-		<script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
-		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
-		<script language="javascript" src="/static/script.js"></script>
 	</head>
 	<body>
-<nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-      <div class="container">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand" href="/">Interest Link - ${heading}</a>
-        </div>
-        <div id="navbar" class="navbar-collapse collapse">
-% if user:
-          <ul class="nav navbar-nav navbar-right">
-            <!--
-            <li class="active"><a href="#">Home</a></li>
-            <li><a href="#about">About</a></li>
-            <li><a href="#contact">Contact</a></li>
-            -->
-            <!--
-            <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Logged in as ${user.username} <span class="caret"></span></a>
-              <ul class="dropdown-menu" role="menu">
-                <li><a href="/user/logout">Log Out</a></li>
-             -->
-                <!--
-                <li><a href="#">Another action</a></li>
-                <li><a href="#">Something else here</a></li>
-                <li class="divider"></li>
-                <li class="dropdown-header">Nav header</li>
-                <li><a href="#">Separated link</a></li>
-                <li><a href="#">One more separated link</a></li>
-                -->
-              <!-- </ul>
-            </li> -->
-        <li><a>Logged in as ${user.username}</a></li>
-	<li><a href="/friends">Friends
-	% if user.friend_requests_incoming:
-		(${len(user.friend_requests_incoming)} pending)
-	% endif
-		</a>
-	</li>
-                <li><a href="/user/logout">Log Out</a></li>
-          </ul>
-% else:
-          <form class="navbar-form navbar-right" role="form" action="/user/login" method="POST">
-            <div class="form-group">
-              <input name="username" type="text" placeholder="Username" class="form-control">
+        <nav class="navbar navbar-expand-lg navbar-dark fixed-top bg-dark" role="navigation">
+            <a class="navbar-brand" href="/">Interest Link - ${heading}</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div id="navbarCollapse" class="navbar-collapse collapse">
+            % if user:
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item"><a class="nav-link" href="/user">Logged in as ${user.username}</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/friends">Friends
+                        % if user.friend_requests_incoming:
+                            (${len(user.friend_requests_incoming)} pending)
+                        % endif
+                    </a></li>
+                    <li class="nav-item"><a class="nav-link" href="/user/logout">Log Out</a></li>
+                </ul>
+            % else:
+                <form class="form-inline ml-auto mt-2 mt-lg-0" role="form" action="/user/login" method="POST">
+                    <input name="username" type="text" placeholder="Username" class="form-control mr-sm-2">
+                    <input name="password" type="password" placeholder="Password" class="form-control mr-sm-2">
+                    <button type="submit" class="btn btn-outline-success my-2 my-sm-0">Sign In</button>
+                </form>
+            % endif
+            </div><!--/.navbar-collapse -->
+        </nav>
+        <main role="main" class="container" style="margin-top: 71px">
+            <div class="row">
+                ${self.body()}
             </div>
-            <div class="form-group">
-              <input name="password" type="password" placeholder="Password" class="form-control">
-            </div>
-            <button type="submit" class="btn btn-success">Sign in</button>
-          </form>
-% endif
-        </div><!--/.navbar-collapse -->
-      </div>
-    </nav>
-		${self.body()}
-		<div id="footer">
-			Link software by Shish
-		</div>
+        </main>
+		<footer class="container">
+            <p>
+                <a href="https://github.com/shish/link">Link software</a>
+                by <a href="https://shishnet.org/">Shish</a>
+            </p>
+		</footer>
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/js/bootstrap.min.js" integrity="sha384-o+RDsa0aLu++PJvFqy8fFScvbHFLtbvScb8AjopnFD+iEQ7wo/CG0xlczd+2O/em" crossorigin="anonymous"></script>
+		<script language="javascript" src="/static/script.js"></script>
 	</body>
 </html>
