@@ -83,7 +83,7 @@ class User(Base):
 
     @property
     def token(self):
-        return hashlib.md5(self.password).hexdigest()
+        return hashlib.md5(self.password.encode()).hexdigest()
 
 
 # this relationship is viewonly and selects across the union of all friends
