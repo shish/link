@@ -41,7 +41,7 @@
             % endfor
         </ul>
     % else:
-        <div class="d-none d-xs-block d-sm-block d-md-block d-lg-none">
+        <div class="d-lg-none">
             <h3 name="login">Sign In</h3>
             <form action="/user/login" method="POST">
                 <input class="form-control" type="text" name="username" placeholder="Username">
