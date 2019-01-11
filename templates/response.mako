@@ -49,20 +49,22 @@ for my_answer in response.answers:
 
 		</div>
 		<div class="col-md-3">
-			% if friends and others:
-				<p>Friends who did this:
-				<ul>
-				% for fresponse in friends:
-					<li><a href="/response/${fresponse.id}">${fresponse.user.username}</a></li>
-				% endfor
-				</ul>
+			% if friends:
+            <p>Friends who did this:
+            <ul>
+            % for fresponse in friends:
+                <li><a href="/response/${fresponse.id}">${fresponse.user.username}</a></li>
+            % endfor
+            </ul>
+            % endif
 
-				<p>Other people who did this:
-				<ul>
-				% for oresponse in others:
-					<li><a href="/response/${oresponse.id}">${oresponse.user.username}</a></li>
-				% endfor
-				</ul>
+			% if others:
+            <p>Other people who did this:
+            <ul>
+            % for oresponse in others:
+                <li><a href="/response/${oresponse.id}">${oresponse.user.username}</a></li>
+            % endfor
+            </ul>
 			% endif
 		</div>
 	</div>
