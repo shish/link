@@ -107,8 +107,8 @@ class Survey(web.View):
                 "heading": survey.name,
                 "survey": survey,
                 "response": response,
-                "friends": friend_responses,
-                "others": other_responses,
+                "friends": list(friend_responses),
+                "others": list(other_responses),
             }
         else:
             return {
@@ -307,8 +307,8 @@ class Response(web.View):
                     "survey": survey,
                     "response": response,
                     "theirs": theirs,
-                    "friends": friend_responses,
-                    "others": other_responses,
+                    "friends": list(friend_responses),
+                    "others": list(other_responses),
                 }
             else:
                 raise web.HTTPNotFound()
