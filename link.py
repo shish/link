@@ -198,27 +198,22 @@ class Question(web.View):
         session = await get_session(self.request)
         user = _get_user(orm, session["username"])
 
-        question = orm.query(db.Question).get(self.request.match_info["id"])
+        question = orm.query(db.Question).get(self.request.match_info["question_id"])
         action = self.request.match_info["action"]
         if question.survey.user != user:
             raise web.HTTPForbidden()
 
         if action == "remove":
             orm.delete(question)
-        elif action == "up":
+        elif action == "up" or action == "down":
             qs = list(question.survey.questions)
             idx = qs.index(question)
-            if idx == 1:
-                question.order = qs[idx - 1].order - 1
-            if idx > 1:
-                question.order = (qs[idx - 1].order + qs[idx - 2].order) / 2
-        elif action == "down":
-            qs = list(question.survey.questions)
-            idx = qs.index(question)
-            if idx == len(qs) - 1:
-                question.order = qs[idx + 1].order + 1
-            if idx < len(qs) - 1:
-                question.order = (qs[idx + 1].order + qs[idx + 2].order) / 2
+            if action == "up":
+                oth = idx - 1
+            else:
+                oth = idx + 1
+            if 0 <= oth < len(qs):
+                qs[idx].order, qs[oth].order = qs[oth].order, qs[idx].order
 
         raise web.HTTPFound("/survey/%d" % question.survey.id)
 

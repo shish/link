@@ -151,6 +151,9 @@ class Question(Base):
             self.flip.flip = self
         self.extra = extra
 
+    def __repr__(self):
+        return "Question(%r, %r)" % (self.order, self.text)
+
     def __lt__(self, other):
         if not other:
             log.warning("Comparing %r against None" % self)
