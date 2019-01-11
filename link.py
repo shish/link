@@ -399,7 +399,7 @@ class Login(web.View):
 
         user = _get_user(orm, username)
         if user and user.check_password(password):
-            session["username"] = username
+            session["username"] = user.username
             # FIXME: web.setcookie("username", username)
             logging.info(
                 f"{session['username']}: logged in from {self.request.transport.get_extra_info('peername')[0]}"
