@@ -66,22 +66,13 @@ def selectedIf(b):
                     </tbody>
                     <thead>
                         <tr>
-                            <td colspan="2">
-                                <!--
-                                <span style="float: right;">
-                                    <span data-toggle="collapse" data-target=".s${hid}" class="s${hid} collapse in">
-                                        <span class="glyphicon glyphicon-chevron-up" aria-hidden="true"></span>
-                                    </span>
-                                    <span data-toggle="collapse" data-target=".s${hid}" class="s${hid} collapse">
-                                        <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
-                                    </span>
-                                </span>
-                                -->
-                                <b>${question.text}</b>
-                            </td>
+                            <th colspan="2" data-toggle="collapse" href="#s${hid}">
+                                ${question.text}
+                            </th>
                         </tr>
                     </thead>
-                    <tbody class="s${hid} collapse in">
+                    <!-- <tbody class="collapse" id="s${hid}"> -->
+                    <tbody id="s${hid}">
         		% else:
                     <%
                     val = response.value(question.id) if response else 0
