@@ -127,6 +127,10 @@ class Survey(Base):
             if q.flip:
                 self.questions.append(q.flip)
 
+    @property
+    def questions_and_headings(self):
+        return sorted(list(self.questions) + list(self.headings))
+
 
 class Question(Base):
     __tablename__ = "question"

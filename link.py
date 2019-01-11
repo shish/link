@@ -206,7 +206,7 @@ class Question(web.View):
         if action == "remove":
             orm.delete(question)
         elif action == "up" or action == "down":
-            qs = list(question.survey.questions)
+            qs = list(question.survey.questions_and_headings)
             idx = qs.index(question)
             if action == "up":
                 oth = idx - 1
@@ -545,12 +545,12 @@ def populate_data(session_factory):
 
         r = db.Response(survey=pets, user=alice)
         for q in pets.questions:
-            db.Answer(response=r, question=q, value=random.choice([-2, -1, 0, 1, 2]))
+            db.Answer(response=r, question=q, value=random.choice([-2, 0, 1, 2]))
         orm.add(r)
 
         r = db.Response(survey=pets, user=bob)
         for q in pets.questions:
-            db.Answer(response=r, question=q, value=random.choice([-2, -1, 0, 1, 2]))
+            db.Answer(response=r, question=q, value=random.choice([-2, 0, 1, 2]))
         orm.add(r)
 
     orm.commit()
