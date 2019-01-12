@@ -543,15 +543,18 @@ def populate_data(session_factory):
             ]
         )
 
-        r = db.Response(survey=pets, user=alice)
+        r = db.Response(survey=pets, user=alice, privacy="friends")
         for q in pets.questions:
             db.Answer(response=r, question=q, value=random.choice([-2, 0, 1, 2]))
         orm.add(r)
 
-        r = db.Response(survey=pets, user=bob)
+        r = db.Response(survey=pets, user=bob, privacy="friends")
         for q in pets.questions:
             db.Answer(response=r, question=q, value=random.choice([-2, 0, 1, 2]))
         orm.add(r)
+
+        f = db.Friendship(friend_a=alice, friend_b=bob, confirmed=True)
+        orm.add(f)
 
     orm.commit()
 
