@@ -58,7 +58,7 @@ def selectedIf(b):
             <%
             prev = None
             %>
-        	% for question in sorted(survey.questions + survey.headings):
+        	% for question in survey.contents:
                 % if question.entry_type == "heading":
                     <%
                     hid = question.text.replace(' ', '')

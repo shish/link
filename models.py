@@ -121,15 +121,26 @@ class Survey(Base):
 
     user = relationship("User", backref=backref("surveys"))
 
-    def set_questions(self, qs):
-        for q in qs:
-            self.questions.append(q)
-            if q.flip:
-                self.questions.append(q.flip)
-
-    @property
-    def questions_and_headings(self):
+    def get_contents(self):
         return sorted(list(self.questions) + list(self.headings))
+
+    def set_contents(self, qs):
+        n = 0
+        for q in qs:
+            if isinstance(q, Question):
+                q.order = n
+                n += 1
+                self.questions.append(q)
+                if q.flip:
+                    q.flip.order = n
+                    n += 1
+                    self.questions.append(q.flip)
+            elif isinstance(q, Heading):
+                q.order = n
+                n += 1
+                self.headings.append(q)
+
+    contents = property(get_contents, set_contents)
 
 
 class Question(Base):
@@ -192,6 +203,9 @@ class Heading(Base):
     survey = relationship(
         "Survey", backref=backref("headings", order_by=[order.asc(), id.asc()])
     )
+
+    def __init__(self, text):
+        self.text = text
 
     def __lt__(self, other):
         return self.order < other.order

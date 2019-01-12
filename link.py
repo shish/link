@@ -527,21 +527,23 @@ def populate_data(session_factory):
             name="Pets",
             user=alice,
             description="What type of pet should we get?",
-            long_description="",
+            long_description="Fluffy? Fuzzy? Wonderful?",
         )
         orm.add(pets)
 
-        pets.set_questions(
-            [
-                db.Question("Cats"),
-                db.Question("Dogs"),
-                db.Question("Rabbits"),
-                db.Question("Human (I am the owner)", "Human (I am the pet)"),
-                db.Question("Humans", extra="As in children"),
-                db.Question("Birds"),
-                db.Question("Lizards"),
-            ]
-        )
+        pets.contents = [
+            db.Heading("Small Animals"),
+            db.Question("Cats"),
+            db.Question("Dogs"),
+            db.Question("Rabbits"),
+            db.Question("Birds"),
+            db.Question("Lizards"),
+            db.Heading("Large Animals"),
+            db.Question("Human (I am the owner)", "Human (I am the pet)"),
+            db.Question("Humans", extra="As in children"),
+            db.Question("Horses"),
+            db.Question("Llamas"),
+        ]
 
         r = db.Response(survey=pets, user=alice, privacy="friends")
         for q in pets.questions:
