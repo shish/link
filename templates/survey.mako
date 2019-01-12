@@ -105,10 +105,9 @@ def selectedIf(b):
                                 <input type="radio" name="q${question.id}" value="-2" ${checkedIf(val == -2)|n}>
                                 Boo!
                             </label>
-                            <span class="d-none d-xl-inline d-lg-inline d-md-inline">&nbsp;&nbsp;&nbsp;</span>
-                            <br class="d-block d-xl-none d-lg-none d-md-none">
+                            <br class="d-block d-xl-none d-lg-none d-md-none d-sm-none">
                             <label>
-                                (No response
+                                (N/A
                                 <input type="radio" name="q${question.id}" value="0" ${checkedIf(val == 0)|n}>)
                             </label>
                         </td>
