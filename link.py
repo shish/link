@@ -102,6 +102,7 @@ class Survey(web.View):
                 not_(db.Response.user_id.in_(friend_ids)),
                 db.Response.privacy == "public",
             )
+            link = f"https://{self.request.host}/response/{response.id}"
             return {
                 "user": user,
                 "heading": survey.name,
@@ -109,6 +110,7 @@ class Survey(web.View):
                 "response": response,
                 "friends": list(friend_responses),
                 "others": list(other_responses),
+                "link": link,
             }
         else:
             return {

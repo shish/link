@@ -13,9 +13,6 @@ def selectedIf(b):
     <p>${survey.long_description or ""}</p>
 
     % if response:
-        <%
-        link = "https://link.shishnet.org/response/%d" % (response.id)
-        %>
         <p>Give this link to someone so they can compare with you
         (they'll be prompted to fill in their answers first if they haven't already):
         <a href="${link}">${link}</a></p>
