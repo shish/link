@@ -185,6 +185,10 @@ class Question(Base):
             return sort_order < other.order
 
     @property
+    def is_first_of_pair(self):
+        return self.flip and self.id < self.flip.id
+
+    @property
     def is_second_of_pair(self):
         return self.flip and self.id > self.flip.id
 
@@ -213,6 +217,14 @@ class Heading(Base):
 
     def __lt__(self, other):
         return self.order < other.order
+
+    @property
+    def is_first_of_pair(self):
+        return False
+
+    @property
+    def is_second_of_pair(self):
+        return False
 
 
 class Response(Base):

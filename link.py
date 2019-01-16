@@ -208,14 +208,29 @@ class Question(web.View):
         if action == "remove":
             orm.delete(question)
         elif action == "up" or action == "down":
-            qs = list(question.survey.questions_and_headings)
+            # Swap the sort-order IDs of two things
+            qs = list(question.survey.contents)
             idx = qs.index(question)
             if action == "up":
+                # swap the selected thing, and the thing above it
                 oth = idx - 1
+                # if the thing above us is our pair, go two above
+                if qs[idx].is_second_of_pair:
+                    oth = idx - 2
             else:
+                # swap the selected thing, and the thing below it
                 oth = idx + 1
+                # if the thing below us is our pair, go two below
+                if qs[idx].is_first_of_pair:
+                    oth = idx + 2
+
+            # make sure "the other thing" exists
             if 0 <= oth < len(qs):
-                qs[idx].order, qs[oth].order = qs[oth].order, qs[idx].order
+                # if either of the selected things are part of a pair, make
+                # sure we are operating on the main entry, not the sub-entry
+                q1 = qs[idx].flip if qs[idx].is_second_of_pair else qs[idx]
+                q2 = qs[oth].flip if qs[oth].is_second_of_pair else qs[oth]
+                q1.order, q2.order = q2.order, q1.order
 
         raise web.HTTPFound("/survey/%d" % question.survey.id)
 
