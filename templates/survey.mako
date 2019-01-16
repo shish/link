@@ -52,24 +52,18 @@ def selectedIf(b):
             </tr>
             </thead>
             <tbody>
-            <%
-            prev = None
-            %>
-        	% for question in survey.contents:
+        	% for question, prev in zip(survey.contents, [None]+survey.contents):
                 % if question.entry_type == "heading":
-                    <%
-                    hid = question.text.replace(' ', '')
-                    %>
                     </tbody>
                     <thead>
                         <tr>
-                            <th colspan="2" data-toggle="collapse" href="#s${hid}">
+                            <th colspan="2" data-toggle="collapse" href="#s${question.id}">
                                 ${question.text}
                             </th>
                         </tr>
                     </thead>
-                    <!-- <tbody class="collapse" id="s${hid}"> -->
-                    <tbody id="s${hid}">
+                    <!-- <tbody class="collapse" id="s${question.id}"> -->
+                    <tbody id="s${question.id}">
         		% else:
                     <%
                     val = response.value(question.id) if response else 0
@@ -82,7 +76,7 @@ def selectedIf(b):
                             <a href="/question/${question.id}/down">&darr;</a>
                         ##	<a href="/question/${question.id}/remove">X</a>
                         % endif
-                        % if question.flip and question.flip == prev:
+                        % if question.is_second_of_pair:
                             &nbsp;&nbsp;&rarr;
                         % endif
                         ${question.text}
@@ -109,9 +103,6 @@ def selectedIf(b):
                             </label>
                         </td>
                     </tr>
-                    <%
-                    prev = question
-                    %>
                 % endif
 	        % endfor
     	    </tbody>

@@ -184,6 +184,10 @@ class Question(Base):
                 sort_order = self.flip.order
             return sort_order < other.order
 
+    @property
+    def is_second_of_pair(self):
+        return self.flip and self.id > self.flip.id
+
     def matches(self, other):
         if self.flip:
             return self.flip.id == other.id
