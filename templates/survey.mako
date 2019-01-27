@@ -47,7 +47,9 @@ def selectedIf(b):
                 <th>Thing</th>
                 <th style="text-align: right;">
                     Want / Will / Won't
-                    <a data-toggle="tooltip" data-original-title="Want to do / Will try for somebody else's benefit / Won't do (with the right person / conditions / etc, in each case)">(?)</a>
+                    <a data-toggle="tooltip"
+                       data-original-title="Want to do / Will try for somebody else's benefit / Won't do (with the right person / conditions / etc, in each case)"
+                    ><i class="fas fa-info-circle"></i></a>
                 </th>
             </tr>
             </thead>
@@ -81,7 +83,9 @@ def selectedIf(b):
                         % endif
                         ${question.text}
                         % if question.extra:
-                            <a data-toggle="tooltip" data-original-title="${question.extra}">(?)</a>
+                            <a data-toggle="tooltip"
+                               data-original-title="${question.extra}"
+                            ><i class="fas fa-info-circle"></i></a>
                         % endif
                         </td>
                         <td class="www">
