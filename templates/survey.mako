@@ -26,15 +26,18 @@ def selectedIf(b):
         <p>
             Privacy:
             <br><label>
-                <input type="radio" name="privacy" value="friends" ${checkedIf(response and response.privacy=="friends")|n}>
+                <input type="radio" name="privacy" value="friends"
+                    ${checkedIf(response and response.privacy=="friends")|n}>
                 Friends Only (Friends can see, others can't)
             </label>
             <br><label>
-                <input type="radio" name="privacy" value="hidden" ${checkedIf(response and response.privacy=="hidden")|n}>
+                <input type="radio" name="privacy" value="hidden"
+                    ${checkedIf(response and response.privacy=="hidden")|n}>
                 Hidden (Response will only be given an ID number and not visibly linked to an account)
             </label>
             <br><label>
-                <input type="radio" name="privacy" value="public" ${checkedIf(response and response.privacy=="public")|n}>
+                <input type="radio" name="privacy" value="public"
+                    ${checkedIf(response and response.privacy=="public")|n}>
                 Public (Show up in the list of people who answered)
             </label>
         </p>
@@ -48,7 +51,7 @@ def selectedIf(b):
                 <th style="text-align: right;">
                     Want / Will / Won't
                     <a data-toggle="tooltip"
-                       data-original-title="Want to do / Will try for somebody else's benefit / Won't do (with the right person / conditions / etc, in each case)"
+                       data-original-title="Want to do / Will try for somebody else's benefit / Won't do"
                     ><i class="fas fa-info-circle"></i></a>
                 </th>
             </tr>
@@ -91,19 +94,23 @@ def selectedIf(b):
                         <td class="www">
                             <label class="want">
                                 Yay!
-                                <input type="radio" name="q${question.id}" value="2" ${checkedIf(val == 2)|n}>
+                                <input type="radio" name="q${question.id}"
+                                       value="2" ${checkedIf(val == 2)|n}>
                             </label>
                             <label class="will">
-                                <input type="radio" name="q${question.id}" value="1" ${checkedIf(val == 1)|n}>
+                                <input type="radio" name="q${question.id}"
+                                       value="1" ${checkedIf(val == 1)|n}>
                             </label>
                             <label class="wont">
-                                <input type="radio" name="q${question.id}" value="-2" ${checkedIf(val == -2)|n}>
+                                <input type="radio" name="q${question.id}"
+                                       value="-2" ${checkedIf(val == -2)|n}>
                                 Boo!
                             </label>
                             <br class="d-block d-xl-none d-lg-none d-md-none d-sm-none">
                             <label>
                                 (N/A
-                                <input type="radio" name="q${question.id}" value="0" ${checkedIf(val == 0)|n}>)
+                                <input type="radio" name="q${question.id}"
+                                       value="0" ${checkedIf(val == 0)|n}>)
                             </label>
                         </td>
                     </tr>
