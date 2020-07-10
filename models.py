@@ -125,19 +125,15 @@ class Survey(Base):
         return sorted(list(self.questions) + list(self.headings))
 
     def set_contents(self, qs):
-        n = 0
-        for q in qs:
+        for n, q in enumerate(qs):
             if isinstance(q, Question):
                 q.order = n
-                n += 1
                 self.questions.append(q)
                 if q.flip:
-                    q.flip.order = n
-                    n += 1
+                    q.flip.order = n + 0.5
                     self.questions.append(q.flip)
             elif isinstance(q, Heading):
                 q.order = n
-                n += 1
                 self.headings.append(q)
 
     contents = property(get_contents, set_contents)
