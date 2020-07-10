@@ -7,6 +7,13 @@ def selectedIf(b):
     return 'selected="selected"' if b else ""
 %>
 
+<datalist id="sections">
+    % for section in sorted(survey.sections):
+        <option value="${section}">${section or "Unsorted"}</option>
+    % endfor
+</datalist>
+
+
 <div class="col-md-9">
 
     <h3>${survey.description}</h3>
@@ -57,64 +64,69 @@ def selectedIf(b):
             </tr>
             </thead>
             <tbody>
+            <%
+            last_section = None
+            %>
         	% for question, prev in zip(survey.contents, [None]+survey.contents):
-                % if question.entry_type == "heading":
+                % if question.section != last_section:
+                    <%
+                    last_section = question.section
+                    %>
                     </tbody>
                     <thead>
                         <tr>
                             <th colspan="2" data-toggle="collapse" href="#s${question.id}">
-                                ${question.text}
+                                ${question.section or "Unsorted"}
                             </th>
                         </tr>
                     </thead>
                     <!-- <tbody class="collapse" id="s${question.id}"> -->
                     <tbody id="s${question.id}">
-        		% else:
-                    <%
-                    val = response.value(question.id) if response else 0
-                    %>
-                    <tr id="q${question.id}" class="answer a${val}">
-                        <td>
-                        % if survey.user == user:
-                        ##	${question.id} - ${question.order}
-                            <a href="/question/${question.id}/up">&uarr;</a>
-                            <a href="/question/${question.id}/down">&darr;</a>
-                        ##	<a href="/question/${question.id}/remove">X</a>
-                        % endif
-                        % if question.is_second_of_pair:
-                            &nbsp;&nbsp;&rarr;
-                        % endif
-                        ${question.text}
-                        % if question.extra:
-                            <a data-toggle="tooltip"
-                               data-original-title="${question.extra}"
-                            ><i class="fas fa-info-circle"></i></a>
-                        % endif
-                        </td>
-                        <td class="www">
-                            <label class="want">
-                                Yay!
-                                <input type="radio" name="q${question.id}"
-                                       value="2" ${checkedIf(val == 2)|n}>
-                            </label>
-                            <label class="will">
-                                <input type="radio" name="q${question.id}"
-                                       value="1" ${checkedIf(val == 1)|n}>
-                            </label>
-                            <label class="wont">
-                                <input type="radio" name="q${question.id}"
-                                       value="-2" ${checkedIf(val == -2)|n}>
-                                Boo!
-                            </label>
-                            <br class="d-block d-xl-none d-lg-none d-md-none d-sm-none">
-                            <label>
-                                (N/A
-                                <input type="radio" name="q${question.id}"
-                                       value="0" ${checkedIf(val == 0)|n}>)
-                            </label>
-                        </td>
-                    </tr>
-                % endif
+        		% endif:
+                <%
+                val = response.value(question.id) if response else 0
+                %>
+                <tr id="q${question.id}" class="answer a${val}">
+                    <td>
+                    % if survey.user == user:
+                    ##	${question.id} - ${question.order}
+                        <a href="/question/${question.id}/up">&uarr;</a>
+                        <a href="/question/${question.id}/down">&darr;</a>
+                    ##	<a href="/question/${question.id}/remove">X</a>
+                    % endif
+                    % if question.is_second_of_pair:
+                        &nbsp;&nbsp;&rarr;
+                    % endif
+                    ${question.text}
+                    % if question.extra:
+                        <a data-toggle="tooltip"
+                            data-original-title="${question.extra}"
+                        ><i class="fas fa-info-circle"></i></a>
+                    % endif
+                    </td>
+                    <td class="www">
+                        <label class="want">
+                            Yay!
+                            <input type="radio" name="q${question.id}"
+                                    value="2" ${checkedIf(val == 2)|n}>
+                        </label>
+                        <label class="will">
+                            <input type="radio" name="q${question.id}"
+                                    value="1" ${checkedIf(val == 1)|n}>
+                        </label>
+                        <label class="wont">
+                            <input type="radio" name="q${question.id}"
+                                    value="-2" ${checkedIf(val == -2)|n}>
+                            Boo!
+                        </label>
+                        <br class="d-block d-xl-none d-lg-none d-md-none d-sm-none">
+                        <label>
+                            (N/A
+                            <input type="radio" name="q${question.id}"
+                                    value="0" ${checkedIf(val == 0)|n}>)
+                        </label>
+                    </td>
+                </tr>
 	        % endfor
     	    </tbody>
         </table>
@@ -160,13 +172,7 @@ def selectedIf(b):
     <h3>Add Question</h3>
     <form action="/question" method="POST">
         <input type="hidden" name="survey" value="${survey.id}">
-        <select class="form-control" name="heading">
-            <option value="-1">Add to end</option>
-        % for heading in sorted(survey.headings):
-            <option value="${heading.id}">${heading.text}</option>
-        % endfor
-            <option value="-2">Add as heading</option>
-        </select>
+        <input class="form-control" type="text" name="section" placeholder="Section" list="sections">
         <input class="form-control" type="text" name="q1" placeholder="Question" required="required">
         <input class="form-control" type="text" name="q2" placeholder="Paired opposite (optional)">
         <input class="form-control" type="text" name="q1extra" placeholder="Extra description for Q1">

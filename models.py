@@ -121,20 +121,20 @@ class Survey(Base):
 
     user = relationship("User", backref=backref("surveys"))
 
+    @property
+    def sections(self):
+        return {q.section for q in self.questions}
+
     def get_contents(self):
-        return sorted(list(self.questions) + list(self.headings))
+        return sorted(list(self.questions))
 
     def set_contents(self, qs):
         for n, q in enumerate(qs):
-            if isinstance(q, Question):
-                q.order = n
-                self.questions.append(q)
-                if q.flip:
-                    q.flip.order = n + 0.5
-                    self.questions.append(q.flip)
-            elif isinstance(q, Heading):
-                q.order = n
-                self.headings.append(q)
+            q.order = n
+            self.questions.append(q)
+            if q.flip:
+                q.flip.order = n + 0.5
+                self.questions.append(q.flip)
 
     contents = property(get_contents, set_contents)
 
@@ -147,18 +147,20 @@ class Question(Base):
     survey_id = Column(Integer, ForeignKey("survey.id"), nullable=False, index=True)
     flip_id = Column(Integer, ForeignKey("question.id"), nullable=True, index=True)
     order = Column(Float, nullable=False, default=0)
+    section = Column(Unicode, nullable=False)
     text = Column(Unicode, nullable=False)
     extra = Column(Unicode, nullable=True)
 
     survey = relationship(
-        "Survey", backref=backref("questions", order_by=[order.asc(), id.asc()])
+        "Survey", backref=backref("questions", order_by=[section.asc(), order.asc(), id.asc()])
     )
     flip = relationship("Question", remote_side=[id], post_update=True, cascade="all")
 
-    def __init__(self, text, flip_text=None, extra=None):
+    def __init__(self, section, text, flip_text=None, extra=None):
+        self.section = section
         self.text = text
         if flip_text:
-            self.flip = Question(flip_text)
+            self.flip = Question(section, flip_text)
             self.flip.flip = self
         self.extra = extra
 
@@ -193,34 +195,6 @@ class Question(Base):
             return self.flip.id == other.id
         else:
             return self.id == other.id
-
-
-class Heading(Base):
-    __tablename__ = "heading"
-    entry_type = "heading"
-
-    id = Column(Integer, primary_key=True)
-    survey_id = Column(Integer, ForeignKey("survey.id"), nullable=False, index=True)
-    order = Column(Float, nullable=False, default=0)
-    text = Column(Unicode, nullable=False)
-
-    survey = relationship(
-        "Survey", backref=backref("headings", order_by=[order.asc(), id.asc()])
-    )
-
-    def __init__(self, text):
-        self.text = text
-
-    def __lt__(self, other):
-        return self.order < other.order
-
-    @property
-    def is_first_of_pair(self):
-        return False
-
-    @property
-    def is_second_of_pair(self):
-        return False
 
 
 class Response(Base):

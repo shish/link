@@ -137,12 +137,9 @@ class Survey(web.View):
         if survey.user != user:
             raise SiteError("Permission denied", "That is not your survey")
 
-        entries = list(survey.questions) + list(survey.headings)
-        offset = 0
+        entries = list(survey.questions)
         for n, entry in enumerate(sorted(entries)):
-            if entry.entry_type == "heading":
-                offset += 10
-            entry.order = n + offset
+            entry.order = n
 
         raise web.HTTPFound("/survey/%d" % survey.id)
 
@@ -159,32 +156,22 @@ class Questions(web.View):
 
         survey = orm.query(db.Survey).get(form["survey"])
 
+        section = form["section"]
         order = time()
-        if int(form["heading"]) > 0:
-            heading = orm.query(db.Heading).get(form["heading"])
-            order = heading.order + (order - int(order))
 
-        if form["heading"] == "-2":
-            h = db.Heading()
-            h.survey_id = survey.id
-            h.order = order
-            h.text = form["q1"]
-            survey.headings.append(h)
-
-        else:
-            q1 = db.Question(form["q1"])
-            q1.order = order
-            if form.get("q1extra"):
-                q1.extra = form.get("q1extra")
-            survey.questions.append(q1)
-            if form.get("q2"):
-                q2 = db.Question(form["q2"])
-                q2.order = order + 0.001
-                if form.get("q2extra"):
-                    q1.extra = form.get("q2extra")
-                survey.questions.append(q2)
-                q1.flip = q2
-                q2.flip = q1
+        q1 = db.Question(section, form["q1"])
+        q1.order = order
+        if form.get("q1extra"):
+            q1.extra = form.get("q1extra")
+        survey.questions.append(q1)
+        if form.get("q2"):
+            q2 = db.Question(section, form["q2"])
+            q2.order = order + 0.001
+            if form.get("q2extra"):
+                q1.extra = form.get("q2extra")
+            survey.questions.append(q2)
+            q1.flip = q2
+            q2.flip = q1
 
         raise web.HTTPFound("/survey/%d" % survey.id)
 
@@ -548,18 +535,19 @@ def populate_data(session_factory):
         )
         orm.add(pets)
 
+        n = ""
+        s = "Small Animals"
+        l = "Large Animals"
         pets.contents = [
-            db.Heading("Small Animals"),
-            db.Question("Cats"),
-            db.Question("Dogs"),
-            db.Question("Rabbits"),
-            db.Question("Birds"),
-            db.Question("Lizards"),
-            db.Heading("Large Animals"),
-            db.Question("Human (I am the owner)", "Human (I am the pet)"),
-            db.Question("Humans", extra="As in children"),
-            db.Question("Horses"),
-            db.Question("Llamas"),
+            db.Question(n, "Human (I am the owner)", "Human (I am the pet)"),
+            db.Question(n, "Humans", extra="As in children"),
+            db.Question(s, "Cats"),
+            db.Question(s, "Dogs"),
+            db.Question(s, "Rabbits"),
+            db.Question(s, "Birds"),
+            db.Question(s, "Lizards"),
+            db.Question(l, "Horses"),
+            db.Question(l, "Llamas"),
         ]
 
         r = db.Response(survey=pets, user=alice, privacy="friends")
