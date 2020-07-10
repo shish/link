@@ -172,6 +172,9 @@ class Question(Base):
             log.warning("Comparing %r against None" % self)
             return 0
 
+        if self.section != other.section:
+            return self.section < other.section
+
         if self.flip and other.id == self.flip.id:
             # if comparing with our pair, lower ID comes first
             return self.id < other.id
