@@ -12,7 +12,7 @@ MAIN {
 }
 H3 {margin-top: 16px;}
 
-TABLE.zebra {border-spacing: 0px; border: 2px solid #CCC;}
+TABLE.zebra {border-spacing: 0px; border: 2px solid #CCC; border-collapse: inherit;}
 TABLE.zebra TD, TABLE.zebra TH {vertical-align: middle; padding: 4px;}
 TABLE.zebra THEAD TD, TABLE.zebra THEAD TH {border-bottom: 2px solid #CCC;}
 TABLE.zebra TFOOT TD, TABLE.zebra TFOOT TH {border-top: 2px solid #CCC;}
