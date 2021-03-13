@@ -400,10 +400,8 @@ class Login(web.View):
         if user and user.check_password(password):
             session["username"] = user.username
             # FIXME: web.setcookie("username", username)
-            addr = self.request.transport.get_extra_info('peername')[0]
-            logging.info(
-                f"{session['username']}: logged in from {addr}"
-            )
+            addr = self.request.transport.get_extra_info("peername")[0]
+            logging.info(f"{session['username']}: logged in from {addr}")
             raise web.HTTPFound("/")
         else:
             raise web.HTTPUnauthorized()

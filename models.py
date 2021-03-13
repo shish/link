@@ -63,12 +63,14 @@ class User(Base):
         "Friendship",
         primaryjoin=and_(id == Friendship.friend_b_id, Friendship.confirmed == False),
     )
-    friend_requests_sent : List[Friendship] = relationship(
+    friend_requests_sent: List[Friendship] = relationship(
         "Friendship",
         primaryjoin=and_(id == Friendship.friend_a_id, Friendship.confirmed == False),
     )
     surveys: List[Survey] = relationship("Survey", back_populates="user")
-    responses: List[Response] = relationship("Response", back_populates="user", cascade="all")
+    responses: List[Response] = relationship(
+        "Response", back_populates="user", cascade="all"
+    )
 
     def __init__(self, username, password, email=None, password_crypt=None):
         self.username = username
@@ -126,7 +128,9 @@ class Survey(Base):
 
     user: User = relationship("User", back_populates="surveys")
     questions: List[Question] = relationship("Question", back_populates="survey")
-    responses: List[Response] = relationship("Response", back_populates="survey", cascade="all")
+    responses: List[Response] = relationship(
+        "Response", back_populates="survey", cascade="all"
+    )
 
     @property
     def sections(self):
@@ -159,8 +163,12 @@ class Question(Base):
     extra = Column(Unicode, nullable=True)
 
     survey: Survey = relationship("Survey", back_populates="questions")
-    flip: Question = relationship("Question", remote_side=[id], post_update=True, cascade="all")
-    answers: List[Answer] = relationship("Answer", back_populates="question", cascade="all")
+    flip: Question = relationship(
+        "Question", remote_side=[id], post_update=True, cascade="all"
+    )
+    answers: List[Answer] = relationship(
+        "Answer", back_populates="question", cascade="all"
+    )
 
     def __init__(self, section, text, flip_text=None, extra=None):
         self.section = section
@@ -216,7 +224,9 @@ class Response(Base):
 
     user: User = relationship("User", back_populates="responses")
     survey: Survey = relationship("Survey", back_populates="responses")
-    answers: List[Answer] = relationship("Answer", back_populates="response", cascade="all")
+    answers: List[Answer] = relationship(
+        "Answer", back_populates="response", cascade="all"
+    )
 
     def value(self, question_id):
         for a in self.answers:
