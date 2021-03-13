@@ -1,22 +1,7 @@
-from link import setup_db, setup_templates, setup_routes
+from link import setup_db, setup_templates, setup_routes, setup_sessions
 import os
 import pytest
-from aiohttp import ClientSession
-from aiohttp import web
-
-from aiohttp_session import AbstractStorage, Session
-
-
-class FakeStorage(AbstractStorage):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.data = {}
-
-    async def load_session(self, request):
-        return Session(None, data=self.data, new=False, max_age=600)
-
-    async def save_session(self, request, response, session):
-        self.data = self._get_session_data(session)
+from aiohttp import web, ClientSession
 
 
 @pytest.fixture
@@ -27,9 +12,7 @@ def cli(loop, aiohttp_client):
     app = web.Application()
     setup_db(app)
     setup_templates(app)
-    from aiohttp_session import setup
-
-    setup(app, FakeStorage())
+    setup_sessions(app)
     setup_routes(app)
     return loop.run_until_complete(aiohttp_client(app))
 
