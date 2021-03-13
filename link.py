@@ -22,7 +22,7 @@ def if_logged_in(func):
         if "username" in session:
             return await func(self, *args)
         else:
-            raise web.HTTPFound("/#login")
+            return web.HTTPFound("/#login")
 
     return splitter
 
@@ -141,7 +141,7 @@ class Survey(web.View):
         for n, entry in enumerate(sorted(entries)):
             entry.order = n
 
-        raise web.HTTPFound("/survey/%d" % survey.id)
+        return web.HTTPFound("/survey/%d" % survey.id)
 
 
 @routes.view("/question")
@@ -173,7 +173,7 @@ class Questions(web.View):
             q1.flip = q2
             q2.flip = q1
 
-        raise web.HTTPFound("/survey/%d" % survey.id)
+        return web.HTTPFound("/survey/%d" % survey.id)
 
 
 @routes.view(r"/question/{question_id:\d+}/{action:(remove|up|down)}")
@@ -219,7 +219,7 @@ class Question(web.View):
                 q2 = qs[oth].flip if qs[oth].is_second_of_pair else qs[oth]
                 q1.order, q2.order = q2.order, q1.order
 
-        raise web.HTTPFound("/survey/%d" % question.survey.id)
+        return web.HTTPFound("/survey/%d" % question.survey.id)
 
 
 @routes.view("/response")
@@ -256,9 +256,9 @@ class Responses(web.View):
             db.Answer(response=response, question=q, value=int(form["q%d" % q.id]))
 
         if form.get("compare"):
-            raise web.HTTPFound("/response/%s" % form.get("compare"))
+            return web.HTTPFound("/response/%s" % form.get("compare"))
         else:
-            raise web.HTTPFound("/survey/%d" % survey.id)
+            return web.HTTPFound("/survey/%d" % survey.id)
 
 
 @routes.view(r"/response/{response_id:\d+}")
@@ -312,7 +312,7 @@ class Response(web.View):
             else:
                 raise web.HTTPNotFound()
         else:
-            raise web.HTTPFound("/survey/%d?compare=%s" % (survey.id, theirs.id))
+            return web.HTTPFound("/survey/%d?compare=%s" % (survey.id, theirs.id))
 
     async def post(self):
         form = await self.request.post()
@@ -328,7 +328,7 @@ class Response(web.View):
         response = orm.query(db.Response).get(self.request.match_info["response_id"])
         if response and response.user == user:
             orm.delete(response)
-        raise web.HTTPFound("/survey/%d" % response.survey.id)
+        return web.HTTPFound("/survey/%d" % response.survey.id)
 
 
 @routes.view("/user")
@@ -383,7 +383,7 @@ class User(web.View):
         else:
             user.email = None
 
-        raise web.HTTPFound("/user")
+        return web.HTTPFound("/user")
 
 
 @routes.view("/user/login")
@@ -437,7 +437,7 @@ class Create(web.View):
 
                 session["username"] = username
                 logging.info(f"{session['username']}: User created")
-                raise web.HTTPFound("/")
+                return web.HTTPFound("/")
             else:
                 raise SiteError(
                     "Password Error",
@@ -487,7 +487,7 @@ class Friends(web.View):
         else:
             orm.add(db.Friendship(friend_a=user, friend_b=them))
 
-        raise web.HTTPFound("/friends")
+        return web.HTTPFound("/friends")
 
     async def delete(self):
         orm = self.request["orm"]
@@ -508,7 +508,7 @@ class Friends(web.View):
             )
         ).delete()
 
-        raise web.HTTPFound("/friends")
+        return web.HTTPFound("/friends")
 
 
 def populate_data(session_factory):
