@@ -16,6 +16,11 @@ randomly generated session encryption key. You can then add `SECRET=...`
 after `DB_DSN=...` to make sure that cookies stay compatible between site
 reloads.
 
+Run unit tests with:
+```
+pytest
+```
+
 Or inside docker:
 -----------------
 

@@ -2,6 +2,9 @@ aiohttp
 aiohttp_autoreload
 aiohttp_mako
 aiohttp_session
+pytest
+pytest-aiohttp
+pytest-cov
 bcrypt
 cryptography
 sqlalchemy

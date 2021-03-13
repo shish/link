@@ -400,8 +400,9 @@ class Login(web.View):
         if user and user.check_password(password):
             session["username"] = user.username
             # FIXME: web.setcookie("username", username)
+            addr = self.request.transport.get_extra_info('peername')[0]
             logging.info(
-                f"{session['username']}: logged in from {self.request.transport.get_extra_info('peername')[0]}"
+                f"{session['username']}: logged in from {addr}"
             )
             raise web.HTTPFound("/")
         else:
@@ -566,19 +567,7 @@ def populate_data(session_factory):
     orm.commit()
 
 
-def main(argv):
-    logging.basicConfig(
-        level=logging.DEBUG, format="%(asctime)s %(levelname)-8s %(message)s"
-    )
-
-    for arg in argv:
-        k, _, v = arg.partition("=")
-        os.environ[k] = v
-
-    logging.info("App starts...")
-    app = web.Application()
-
-    # Database
+def setup_db(app: web.Application):
     from sqlalchemy import create_engine
     from sqlalchemy.orm import sessionmaker
 
@@ -599,7 +588,8 @@ def main(argv):
     app.middlewares.append(add_db)
     populate_data(session_factory)
 
-    # Templates
+
+def setup_templates(app: web.Application):
     aiohttp_mako.setup(
         app,
         directories=["./templates/"],
@@ -608,7 +598,8 @@ def main(argv):
         default_filters=["unicode", "h"],
     )
 
-    # Sessions
+
+def setup_sessions(app: web.Application):
     import base64
     from cryptography import fernet
     from aiohttp_session import setup
@@ -622,6 +613,8 @@ def main(argv):
     secret_key = base64.urlsafe_b64decode(fernet_key)
     setup(app, EncryptedCookieStorage(secret_key))
 
+
+def setup_debug(app: web.Application):
     # Reloader
     try:
         import aiohttp_autoreload
@@ -630,11 +623,30 @@ def main(argv):
     except ImportError:
         pass
 
-    # Setup Routes
+
+def setup_routes(app: web.Application):
     app.add_routes(routes)
     app.router.add_static("/static/", path="./static/", name="static")
 
-    # Go!
+
+def main(argv):
+    logging.basicConfig(
+        level=logging.DEBUG, format="%(asctime)s %(levelname)-8s %(message)s"
+    )
+
+    for arg in argv:
+        k, _, v = arg.partition("=")
+        os.environ[k] = v
+
+    logging.info("App starts...")
+    app = web.Application()
+
+    setup_db(app)
+    setup_templates(app)
+    setup_sessions(app)
+    setup_debug(app)
+    setup_routes(app)
+
     web.run_app(app, port=8000)
 
 
