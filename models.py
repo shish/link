@@ -16,7 +16,7 @@ from sqlalchemy import (
     select,
 )
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import backref, relationship
+from sqlalchemy.orm import relationship
 
 log = logging.getLogger(__name__)
 
@@ -39,7 +39,6 @@ class Friendship(Base):
 
     friend_a = relationship("User", foreign_keys=[friend_a_id])
     friend_b = relationship("User", foreign_keys=[friend_b_id])
-
 
 class User(Base):
     __tablename__ = "user"
@@ -64,6 +63,8 @@ class User(Base):
         "Friendship",
         primaryjoin=and_(id == Friendship.friend_a_id, Friendship.confirmed == False),
     )
+    surveys = relationship("Survey", back_populates="user")
+    responses = relationship("Response", back_populates="user", cascade="all")
 
     def __init__(self, username, password, email=None, password_crypt=None):
         self.username = username
@@ -119,7 +120,9 @@ class Survey(Base):
     description = Column(Unicode, nullable=False)
     long_description = Column(Unicode, nullable=False)
 
-    user = relationship("User", backref=backref("surveys"))
+    user = relationship("User", back_populates="surveys")
+    questions = relationship("Question", back_populates="survey")
+    responses = relationship("Response", back_populates="survey", cascade="all")
 
     @property
     def sections(self):
@@ -151,10 +154,9 @@ class Question(Base):
     text = Column(Unicode, nullable=False)
     extra = Column(Unicode, nullable=True)
 
-    survey = relationship(
-        "Survey", backref=backref("questions", order_by=[section.asc(), order.asc(), id.asc()])
-    )
+    survey = relationship("Survey", back_populates="questions")
     flip = relationship("Question", remote_side=[id], post_update=True, cascade="all")
+    answers = relationship("Answer", back_populates="question", cascade="all")
 
     def __init__(self, section, text, flip_text=None, extra=None):
         self.section = section
@@ -208,8 +210,9 @@ class Response(Base):
     survey_id = Column(Integer, ForeignKey("survey.id"), nullable=False, index=True)
     privacy = Column(String, nullable=False, default="private")
 
-    user = relationship("User", backref=backref("responses", cascade="all"))
-    survey = relationship("Survey", backref=backref("responses", cascade="all"))
+    user = relationship("User", back_populates="responses")
+    survey = relationship("Survey", back_populates="responses")
+    answers = relationship("Answer", back_populates="response", cascade="all")
 
     def value(self, question_id):
         for a in self.answers:
@@ -226,10 +229,8 @@ class Answer(Base):
     response_id = Column(Integer, ForeignKey("response.id"), nullable=False, index=True)
     value = Column(Integer, nullable=True)
 
-    question = relationship(
-        "Question", backref=backref("answers", cascade="all", order_by=[id.asc()])
-    )
-    response = relationship("Response", backref=backref("answers", cascade="all"))
+    question = relationship("Question", back_populates="answers")
+    response = relationship("Response", back_populates="answers")
 
     def value_name(self):
         return {
