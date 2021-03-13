@@ -402,7 +402,7 @@ class Login(web.View):
             # FIXME: web.setcookie("username", username)
             addr = self.request.transport.get_extra_info("peername")[0]
             logging.info(f"{session['username']}: logged in from {addr}")
-            raise web.HTTPFound("/")
+            return web.HTTPFound("/")
         else:
             raise web.HTTPUnauthorized()
 
@@ -414,7 +414,7 @@ class Logout(web.View):
         if "username" in session:
             logging.info(f"{session['username']}: logged out")
             del session["username"]
-        raise web.HTTPFound("/")
+        return web.HTTPFound("/")
 
 
 @routes.view("/user/create")
