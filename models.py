@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import hashlib
 import logging
+from typing import List
 
 import bcrypt
 from sqlalchemy import (
@@ -37,8 +40,9 @@ class Friendship(Base):
     friend_b_id = Column(Integer, ForeignKey("user.id"), primary_key=True)
     confirmed = Column(Boolean, nullable=False, default=False)
 
-    friend_a = relationship("User", foreign_keys=[friend_a_id])
-    friend_b = relationship("User", foreign_keys=[friend_b_id])
+    friend_a: User = relationship("User", foreign_keys=[friend_a_id])
+    friend_b: User = relationship("User", foreign_keys=[friend_b_id])
+
 
 class User(Base):
     __tablename__ = "user"
@@ -49,22 +53,22 @@ class User(Base):
     email = Column(Unicode, default=None, nullable=True)
 
     # this relationship is used for persistence
-    friends = relationship(
+    friends: User = relationship(
         "User",
         secondary=Friendship.__table__,
         primaryjoin=id == Friendship.friend_a_id,
         secondaryjoin=id == Friendship.friend_b_id,
     )
-    friend_requests_incoming = relationship(
+    friend_requests_incoming: List[Friendship] = relationship(
         "Friendship",
         primaryjoin=and_(id == Friendship.friend_b_id, Friendship.confirmed == False),
     )
-    friend_requests_sent = relationship(
+    friend_requests_sent : List[Friendship] = relationship(
         "Friendship",
         primaryjoin=and_(id == Friendship.friend_a_id, Friendship.confirmed == False),
     )
-    surveys = relationship("Survey", back_populates="user")
-    responses = relationship("Response", back_populates="user", cascade="all")
+    surveys: List[Survey] = relationship("Survey", back_populates="user")
+    responses: List[Response] = relationship("Response", back_populates="user", cascade="all")
 
     def __init__(self, username, password, email=None, password_crypt=None):
         self.username = username
@@ -120,9 +124,9 @@ class Survey(Base):
     description = Column(Unicode, nullable=False)
     long_description = Column(Unicode, nullable=False)
 
-    user = relationship("User", back_populates="surveys")
-    questions = relationship("Question", back_populates="survey")
-    responses = relationship("Response", back_populates="survey", cascade="all")
+    user: User = relationship("User", back_populates="surveys")
+    questions: List[Question] = relationship("Question", back_populates="survey")
+    responses: List[Response] = relationship("Response", back_populates="survey", cascade="all")
 
     @property
     def sections(self):
@@ -154,9 +158,9 @@ class Question(Base):
     text = Column(Unicode, nullable=False)
     extra = Column(Unicode, nullable=True)
 
-    survey = relationship("Survey", back_populates="questions")
-    flip = relationship("Question", remote_side=[id], post_update=True, cascade="all")
-    answers = relationship("Answer", back_populates="question", cascade="all")
+    survey: Survey = relationship("Survey", back_populates="questions")
+    flip: Question = relationship("Question", remote_side=[id], post_update=True, cascade="all")
+    answers: List[Answer] = relationship("Answer", back_populates="question", cascade="all")
 
     def __init__(self, section, text, flip_text=None, extra=None):
         self.section = section
@@ -210,9 +214,9 @@ class Response(Base):
     survey_id = Column(Integer, ForeignKey("survey.id"), nullable=False, index=True)
     privacy = Column(String, nullable=False, default="private")
 
-    user = relationship("User", back_populates="responses")
-    survey = relationship("Survey", back_populates="responses")
-    answers = relationship("Answer", back_populates="response", cascade="all")
+    user: User = relationship("User", back_populates="responses")
+    survey: Survey = relationship("Survey", back_populates="responses")
+    answers: List[Answer] = relationship("Answer", back_populates="response", cascade="all")
 
     def value(self, question_id):
         for a in self.answers:
@@ -229,8 +233,8 @@ class Answer(Base):
     response_id = Column(Integer, ForeignKey("response.id"), nullable=False, index=True)
     value = Column(Integer, nullable=True)
 
-    question = relationship("Question", back_populates="answers")
-    response = relationship("Response", back_populates="answers")
+    question: Question = relationship("Question", back_populates="answers")
+    response: Response = relationship("Response", back_populates="answers")
 
     def value_name(self):
         return {

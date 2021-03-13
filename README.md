@@ -4,7 +4,7 @@ tl;dr:
 Plain python:
 -------------
 
-Using Python 3.6+
+Using Python 3.7+
 
 ```
 pip install -r requirements.txt

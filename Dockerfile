@@ -1,4 +1,4 @@
-FROM python:3.6-slim-stretch
+FROM python:3.7-slim-stretch
 RUN apt update && apt install -y curl
 HEALTHCHECK --interval=5m --timeout=3s CMD curl --fail http://127.0.0.1:8000/ || exit 1
 ENV DB_DSN=sqlite:////db/link.sdb
