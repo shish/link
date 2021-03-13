@@ -14,5 +14,6 @@ RUN /usr/local/bin/pip install psycopg2-binary
 
 COPY . /app
 WORKDIR /app
+RUN /usr/local/bin/pytest
 CMD ["/usr/local/bin/python", "link.py"]
 
