@@ -22,8 +22,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
 log = logging.getLogger(__name__)
-
-
+security = True
 Base = declarative_base()
 
 
@@ -80,13 +79,19 @@ class User(Base):
             self.password = password_crypt
 
     def set_password(self, password):
-        given = password.encode()
-        self.password = bcrypt.hashpw(given, bcrypt.gensalt()).decode()
+        if security:
+            given = password.encode()
+            self.password = bcrypt.hashpw(given, bcrypt.gensalt()).decode()
+        else:
+            self.password = password
 
     def check_password(self, password):
-        given = password.encode()
-        current = self.password.encode()
-        return bcrypt.hashpw(given, current) == current
+        if security:
+            given = password.encode()
+            current = self.password.encode()
+            return bcrypt.hashpw(given, current) == current
+        else:
+            return self.password == password
 
     @property
     def token(self):

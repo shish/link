@@ -22,7 +22,7 @@ def if_logged_in(func):
         if "username" in session:
             return await func(self, *args)
         else:
-            return web.HTTPFound("/#login")
+            raise web.HTTPFound("/#login")
 
     return splitter
 
@@ -141,7 +141,7 @@ class Survey(web.View):
         for n, entry in enumerate(sorted(entries)):
             entry.order = n
 
-        return web.HTTPFound("/survey/%d" % survey.id)
+        raise web.HTTPFound("/survey/%d" % survey.id)
 
 
 @routes.view("/question")
@@ -244,16 +244,13 @@ class Responses(web.View):
                 orm.delete(answer)
         else:
             response = db.Response(survey=survey, user=user)
-        if form.get("public") == "on":
-            response.privacy = "public"
-        else:
-            response.privacy = "private"
 
-        if form.get("privacy"):
-            response.privacy = form.get("privacy")
+        response.privacy = form.get("privacy", "private")
 
         for q in survey.questions:
-            db.Answer(response=response, question=q, value=int(form["q%d" % q.id]))
+            qn = "q%d" % q.id
+            if qn in form:
+                db.Answer(response=response, question=q, value=int(form[qn]))
 
         if form.get("compare"):
             return web.HTTPFound("/response/%s" % form.get("compare"))
@@ -312,7 +309,7 @@ class Response(web.View):
             else:
                 raise web.HTTPNotFound()
         else:
-            return web.HTTPFound("/survey/%d?compare=%s" % (survey.id, theirs.id))
+            raise web.HTTPFound("/survey/%d?compare=%s" % (survey.id, theirs.id))
 
     async def post(self):
         form = await self.request.post()
@@ -328,7 +325,7 @@ class Response(web.View):
         response = orm.query(db.Response).get(self.request.match_info["response_id"])
         if response and response.user == user:
             orm.delete(response)
-        return web.HTTPFound("/survey/%d" % response.survey.id)
+        raise web.HTTPFound("/survey/%d" % response.survey.id)
 
 
 @routes.view("/user")
@@ -383,7 +380,7 @@ class User(web.View):
         else:
             user.email = None
 
-        return web.HTTPFound("/user")
+        raise web.HTTPFound("/user")
 
 
 @routes.view("/user/login")
@@ -449,6 +446,19 @@ class Create(web.View):
             )
 
 
+@routes.view("/user/delete")
+class Delete(web.View):
+    @if_logged_in
+    async def delete(self):
+        orm = self.request["orm"]
+        session = await get_session(self.request)
+        user = _get_user(orm, session["username"])
+        orm.delete(user)
+        logging.info(f"{session['username']}: deleted")
+        del session["username"]
+        return web.HTTPFound("/")
+
+
 @routes.view("/friends")
 @aiohttp_mako.template("friends.mako")
 class Friends(web.View):
@@ -487,7 +497,7 @@ class Friends(web.View):
         else:
             orm.add(db.Friendship(friend_a=user, friend_b=them))
 
-        return web.HTTPFound("/friends")
+        raise web.HTTPFound("/friends")
 
     async def delete(self):
         orm = self.request["orm"]
@@ -508,7 +518,7 @@ class Friends(web.View):
             )
         ).delete()
 
-        return web.HTTPFound("/friends")
+        raise web.HTTPFound("/friends")
 
 
 def populate_data(session_factory):
@@ -522,6 +532,11 @@ def populate_data(session_factory):
     bob = orm.query(db.User).filter(db.User.username == "Bob").first()
     if not bob:
         bob = db.User("Bob", "bobpass")
+        orm.add(bob)
+
+    bob = orm.query(db.User).filter(db.User.username == "Charlie").first()
+    if not bob:
+        bob = db.User("Charlie", "charliepass")
         orm.add(bob)
 
     pets = orm.query(db.Survey).filter(db.Survey.name == "Pets").first()
@@ -605,14 +620,14 @@ def setup_sessions(app: web.Application):
 
     if os.environ.get("SECRET"):
         fernet_key = os.environ["SECRET"].encode()
-    else:
+    else:  # pragma: nocover
         fernet_key = fernet.Fernet.generate_key()
         print("SECRET=" + fernet_key.decode())
     secret_key = base64.urlsafe_b64decode(fernet_key)
     setup(app, EncryptedCookieStorage(secret_key))
 
 
-def setup_debug(app: web.Application):
+def setup_debug(app: web.Application):  # pragma: nocover
     # Reloader
     try:
         import aiohttp_autoreload
@@ -627,7 +642,7 @@ def setup_routes(app: web.Application):
     app.router.add_static("/static/", path="./static/", name="static")
 
 
-def main(argv):
+def main(argv):  # pragma: nocover
     logging.basicConfig(
         level=logging.DEBUG, format="%(asctime)s %(levelname)-8s %(message)s"
     )
@@ -648,5 +663,5 @@ def main(argv):
     web.run_app(app, port=8000)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: nocover
     main(sys.argv)
