@@ -4,6 +4,7 @@ import pytest
 from aiohttp import web, ClientSession
 import re
 import models
+import json
 
 models.security = False
 
@@ -48,7 +49,7 @@ async def test_get_logout(cli: ClientSession):
 async def test_redirect_to_login(cli: ClientSession):
     resp = await cli.post("/survey/1", allow_redirects=False)
     assert resp.status == 302
-    assert resp.headers['Location'] == "/#login"
+    assert resp.headers["Location"] == "/#login"
 
 
 async def test_create_dupe_username(cli: ClientSession):
@@ -67,6 +68,7 @@ async def test_create_bad_password(cli: ClientSession):
         allow_redirects=False,
     )
     assert resp.status == 500
+
 
 async def test_list_surveys(cli: ClientSession):
     resp = await cli.get("/", allow_redirects=False)
@@ -135,7 +137,9 @@ async def test_get_response(cli: ClientSession):
 
 async def test_delete_response(cli: ClientSession):
     await login(cli)
-    resp = await cli.post("/response/2", data={"_method": "DELETE"}, allow_redirects=False)
+    resp = await cli.post(
+        "/response/2", data={"_method": "DELETE"}, allow_redirects=False
+    )
     assert resp.status == 302
 
 
@@ -148,15 +152,20 @@ async def test_get_user(cli: ClientSession):
 
 async def test_post_user(cli: ClientSession):
     import hashlib
+
     await login(cli)
-    resp = await cli.post("/user", data={
-        "old_password": "alicepass",
-        "new_username": "AliceNew",
-        "new_password_1": "apass2",
-        "new_password_2": "apass2",
-        "new_email": "alice@example.com",
-        "csrf_token": hashlib.md5("alicepass".encode()).hexdigest(),
-    }, allow_redirects=False)
+    resp = await cli.post(
+        "/user",
+        data={
+            "old_password": "alicepass",
+            "new_username": "AliceNew",
+            "new_password_1": "apass2",
+            "new_password_2": "apass2",
+            "new_email": "alice@example.com",
+            "csrf_token": hashlib.md5("alicepass".encode()).hexdigest(),
+        },
+        allow_redirects=False,
+    )
     assert resp.status == 302
 
 
@@ -182,6 +191,11 @@ async def test_post_delete_friends(cli: ClientSession):
 
 
 async def test_e2e_deletion_cascade(cli: ClientSession):
+    # count things before
+    resp = await cli.get("/stats")
+    assert resp.status == 200
+    stats = json.loads(await resp.text())
+
     # create user
     resp = await cli.post(
         "/user/create",
@@ -190,7 +204,11 @@ async def test_e2e_deletion_cascade(cli: ClientSession):
     )
     assert resp.status == 302
 
-    # TODO: create friendships
+    # create friendship
+    resp = await cli.post(
+        "/friends", data={"their_name": "alice"}, allow_redirects=False
+    )
+    assert resp.status == 302
 
     # check empty response
     resp = await cli.get(f"/survey/1", allow_redirects=False)
@@ -204,11 +222,9 @@ async def test_e2e_deletion_cascade(cli: ClientSession):
     )
     assert resp.status == 302
 
-    # look at our response
+    # look at our response, find our response ID
     resp = await cli.get(f"/survey/1", allow_redirects=False)
     assert resp.status == 200
-
-    # find our response ID
     matches = re.search(r"/response/(\d)", await resp.text()).groups()
     resp_id = matches[0]
 
@@ -225,9 +241,63 @@ async def test_e2e_deletion_cascade(cli: ClientSession):
     resp = await cli.get(f"/response/{resp_id}", allow_redirects=False)
     assert resp.status == 404
 
-    # TODO: make sure nothing else got deleted by accident
+    # count things after
+    resp = await cli.get("/stats", allow_redirects=False)
+    assert resp.status == 200
+    assert stats == json.loads(await resp.text())
 
 
-# TODO: more tests
-# - privacy settings
-# - friendships
+async def test_privacy_public(cli: ClientSession):
+    # charlie has no friends
+    await login(cli, "charlie")
+    resp_id = await _respond(cli, "public")
+
+    # alice can see his response, with name
+    await login(cli)
+    resp = await cli.get(f"/response/{resp_id}", allow_redirects=False)
+    assert resp.status == 200
+    assert "Charlie" in await resp.text()
+
+
+async def test_privacy_hidden(cli: ClientSession):
+    # charlie has no friends
+    await login(cli, "charlie")
+    resp_id = await _respond(cli, "hidden")
+
+    # alice can see his response, anonymously
+    await login(cli)
+    resp = await cli.get(f"/response/{resp_id}", allow_redirects=False)
+    assert resp.status == 200
+    assert "Charlie" not in await resp.text()
+
+
+async def test_privacy_friends(cli: ClientSession):
+    # charlie has no friends
+    await login(cli, "charlie")
+    charlie_resp_id = await _respond(cli, "friends")
+
+    # bob is alice's friend
+    await login(cli, "bob")
+    bob_resp_id = await _respond(cli, "friends")
+
+    # alice can see bob, but not charlie
+    await login(cli)
+    resp = await cli.get(f"/response/{bob_resp_id}", allow_redirects=False)
+    assert resp.status == 200
+    resp = await cli.get(f"/response/{charlie_resp_id}", allow_redirects=False)
+    assert resp.status == 404
+
+
+async def _respond(cli: ClientSession, privacy: str) -> int:
+    resp = await cli.post(
+        "/response",
+        data={"survey": 1, "privacy": privacy, "q1": 1, "q2": 0, "q3": -1},
+        allow_redirects=False,
+    )
+    assert resp.status == 302
+    resp = await cli.get(f"/survey/1", allow_redirects=False)
+    assert resp.status == 200
+    matches = re.search(r"/response/(\d)", await resp.text()).groups()
+    resp_id = int(matches[0])
+    assert resp_id > 0
+    return resp_id

@@ -5,6 +5,7 @@ import os
 import random
 import sys
 from time import time
+import json
 
 import aiohttp_mako
 from aiohttp import web
@@ -453,6 +454,11 @@ class Delete(web.View):
         orm = self.request["orm"]
         session = await get_session(self.request)
         user = _get_user(orm, session["username"])
+        # cascade rules for many-many are complicated, deleting
+        # by hand for now...
+        orm.query(db.Friendship).filter(
+            or_(db.Friendship.friend_a == user, db.Friendship.friend_b == user)
+        ).delete()
         orm.delete(user)
         logging.info(f"{session['username']}: deleted")
         del session["username"]
@@ -521,6 +527,27 @@ class Friends(web.View):
         raise web.HTTPFound("/friends")
 
 
+@routes.view("/stats")
+class Stats(web.View):
+    async def get(self):
+        addr = self.request.transport.get_extra_info("peername")[0]
+        if addr != "127.0.0.1":
+            raise web.HTTPForbidden()
+        orm = self.request["orm"]
+        return web.Response(
+            body=json.dumps(
+                {
+                    "friendships": orm.query(db.Friendship).count(),
+                    "users": orm.query(db.User).count(),
+                    "surveys": orm.query(db.Survey).count(),
+                    "questions": orm.query(db.Question).count(),
+                    "responses": orm.query(db.Response).count(),
+                    "answers": orm.query(db.Answer).count(),
+                }
+            )
+        )
+
+
 def populate_data(session_factory):
     orm = session_factory()
 
@@ -534,10 +561,10 @@ def populate_data(session_factory):
         bob = db.User("Bob", "bobpass")
         orm.add(bob)
 
-    bob = orm.query(db.User).filter(db.User.username == "Charlie").first()
-    if not bob:
-        bob = db.User("Charlie", "charliepass")
-        orm.add(bob)
+    charlie = orm.query(db.User).filter(db.User.username == "Charlie").first()
+    if not charlie:
+        charlie = db.User("Charlie", "charliepass")
+        orm.add(charlie)
 
     pets = orm.query(db.Survey).filter(db.Survey.name == "Pets").first()
     if not pets:
