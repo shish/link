@@ -531,7 +531,7 @@ class Friends(web.View):
 class Stats(web.View):
     async def get(self):
         addr = self.request.transport.get_extra_info("peername")[0]
-        if addr != "127.0.0.1":
+        if addr != "127.0.0.1":  # pragma: nocover
             raise web.HTTPForbidden()
         orm = self.request["orm"]
         return web.Response(

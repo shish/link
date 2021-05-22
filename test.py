@@ -31,13 +31,22 @@ async def login(cli: ClientSession, name="alice"):
     assert resp.status == 302
 
 
-async def test_get_login_fail(cli: ClientSession):
+async def test_post_login_bad_username(cli: ClientSession):
     resp = await cli.post(
         "/user/login",
         data={"username": "asdfasdfa", "password": "asdfasd"},
         allow_redirects=False,
     )
     assert resp.status == 404
+
+
+async def test_post_login_bad_password(cli: ClientSession):
+    resp = await cli.post(
+        "/user/login",
+        data={"username": "alice", "password": "asdfasd"},
+        allow_redirects=False,
+    )
+    assert resp.status == 401
 
 
 async def test_get_logout(cli: ClientSession):
