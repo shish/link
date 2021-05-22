@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import logging
 from typing import List
+import random
 
 import bcrypt
 from sqlalchemy import (
@@ -259,3 +260,63 @@ class Answer(Base):
             1: "would try",
             2: "like",
         }[self.value]
+
+
+def populate_example_data(session_factory):
+    orm = session_factory()
+
+    alice = orm.query(User).filter(User.username == "Alice").first()
+    if not alice:
+        alice = User("Alice", "alicepass")
+        orm.add(alice)
+
+    bob = orm.query(User).filter(User.username == "Bob").first()
+    if not bob:
+        bob = User("Bob", "bobpass")
+        orm.add(bob)
+
+    charlie = orm.query(User).filter(User.username == "Charlie").first()
+    if not charlie:
+        charlie = User("Charlie", "charliepass")
+        orm.add(charlie)
+
+    pets = orm.query(Survey).filter(Survey.name == "Pets").first()
+    if not pets:
+        pets = Survey(
+            name="Pets",
+            user=alice,
+            description="What type of pet should we get?",
+            long_description="Fluffy? Fuzzy? Wonderful?",
+        )
+        orm.add(pets)
+
+        n = ""
+        s = "Small Animals"
+        l = "Large Animals"
+        pets.contents = [
+            Question(n, "Human (I am the owner)", "Human (I am the pet)"),
+            Question(n, "Humans", extra="As in children"),
+            Question(s, "Cats"),
+            Question(s, "Dogs"),
+            Question(s, "Rabbits"),
+            Question(s, "Birds"),
+            Question(s, "Lizards"),
+            Question(l, "Horses"),
+            Question(l, "Llamas"),
+        ]
+
+        r = Response(survey=pets, user=alice, privacy="friends")
+        for q in pets.questions:
+            Answer(response=r, question=q, value=random.choice([-2, 0, 1, 2]))
+        orm.add(r)
+
+        r = Response(survey=pets, user=bob, privacy="friends")
+        for q in pets.questions:
+            Answer(response=r, question=q, value=random.choice([-2, 0, 1, 2]))
+        orm.add(r)
+
+        f = Friendship(friend_a=alice, friend_b=bob, confirmed=True)
+        orm.add(f)
+
+    orm.commit()
+

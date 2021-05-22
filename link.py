@@ -2,7 +2,6 @@
 
 import logging.handlers
 import os
-import random
 import sys
 from time import time
 import json
@@ -548,65 +547,6 @@ class Stats(web.View):
         )
 
 
-def populate_data(session_factory):
-    orm = session_factory()
-
-    alice = orm.query(db.User).filter(db.User.username == "Alice").first()
-    if not alice:
-        alice = db.User("Alice", "alicepass")
-        orm.add(alice)
-
-    bob = orm.query(db.User).filter(db.User.username == "Bob").first()
-    if not bob:
-        bob = db.User("Bob", "bobpass")
-        orm.add(bob)
-
-    charlie = orm.query(db.User).filter(db.User.username == "Charlie").first()
-    if not charlie:
-        charlie = db.User("Charlie", "charliepass")
-        orm.add(charlie)
-
-    pets = orm.query(db.Survey).filter(db.Survey.name == "Pets").first()
-    if not pets:
-        pets = db.Survey(
-            name="Pets",
-            user=alice,
-            description="What type of pet should we get?",
-            long_description="Fluffy? Fuzzy? Wonderful?",
-        )
-        orm.add(pets)
-
-        n = ""
-        s = "Small Animals"
-        l = "Large Animals"
-        pets.contents = [
-            db.Question(n, "Human (I am the owner)", "Human (I am the pet)"),
-            db.Question(n, "Humans", extra="As in children"),
-            db.Question(s, "Cats"),
-            db.Question(s, "Dogs"),
-            db.Question(s, "Rabbits"),
-            db.Question(s, "Birds"),
-            db.Question(s, "Lizards"),
-            db.Question(l, "Horses"),
-            db.Question(l, "Llamas"),
-        ]
-
-        r = db.Response(survey=pets, user=alice, privacy="friends")
-        for q in pets.questions:
-            db.Answer(response=r, question=q, value=random.choice([-2, 0, 1, 2]))
-        orm.add(r)
-
-        r = db.Response(survey=pets, user=bob, privacy="friends")
-        for q in pets.questions:
-            db.Answer(response=r, question=q, value=random.choice([-2, 0, 1, 2]))
-        orm.add(r)
-
-        f = db.Friendship(friend_a=alice, friend_b=bob, confirmed=True)
-        orm.add(f)
-
-    orm.commit()
-
-
 def setup_db(app: web.Application):
     from sqlalchemy import create_engine
     from sqlalchemy.orm import sessionmaker
@@ -626,7 +566,7 @@ def setup_db(app: web.Application):
         return resp
 
     app.middlewares.append(add_db)
-    populate_data(session_factory)
+    db.populate_example_data(session_factory)
 
 
 def setup_templates(app: web.Application):
