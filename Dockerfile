@@ -1,6 +1,6 @@
 FROM python:3.9-slim-buster
 RUN apt update && apt install -y curl
-HEALTHCHECK --interval=5m --timeout=3s CMD curl --fail http://127.0.0.1:8000/ || exit 1
+HEALTHCHECK --interval=1m --timeout=3s CMD curl --fail http://127.0.0.1:8000/ || exit 1
 ENV DB_DSN=sqlite:////db/link.sdb
 ENV SECRET=
 VOLUME /db
