@@ -98,6 +98,9 @@ class User(Base):
     def token(self):
         return hashlib.md5(self.password.encode()).hexdigest()
 
+    def __lt__(self, b):
+        return self.username < b.username
+
 
 # this relationship is viewonly and selects across the union of all friends
 friendship_union = (
