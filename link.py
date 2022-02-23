@@ -278,6 +278,11 @@ class Response(web.View):
             .first()
         )
 
+        try:
+            sort_by = self.request.query['sort_by']
+        except Exception as e:
+            sort_by = ""
+
         if response:
             friend_ids = [friend.id for friend in user.all_friends]
             friend_responses = orm.query(db.Response).filter(
@@ -305,6 +310,7 @@ class Response(web.View):
                     "theirs": theirs,
                     "friends": list(friend_responses),
                     "others": list(other_responses),
+                    "sort_by": sort_by,
                 }
             else:
                 raise web.HTTPNotFound()

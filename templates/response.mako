@@ -1,13 +1,20 @@
 <%inherit file="base.mako"/>
 
 <div class="col-md-9">
-    <h3>Comparing answers for <a href="/survey/${survey.id}">${survey.name}</a>
+    <h3 style="display:inline">Comparing answers for <a href="/survey/${survey.id}">${survey.name}</a>
         % if theirs.privacy == "public" or theirs.privacy == "friends":
             with ${theirs.user.username}
         % else:
             with [hidden]
         % endif
     </h3>
+    <form action="/response/${theirs.id}" method="GET" style="display:inline">
+        <label for="sort_by">Sorted by: </label>
+        <select name="sort_by" onchange="javascript:document.forms[0].submit()">
+            <option value="" ${"selected" if sort_by == "" else ""}>Compatibility</option>
+            <option value="cat" ${"selected" if sort_by == "cat" else ""}>Category</option>
+        </select>
+    </form>
     <p>${survey.long_description or ""}</p>
 
     <%
@@ -32,15 +39,33 @@
                             my_answer.value_name(), my_answer.question.text,
                             their_answer.value_name(), their_answer.question.text
                         )
-                    things.append((-score, -their_answer.value, my_answer.question.order, thing))
+                    things.append({
+                        "score": -score, 
+                        "their_score": -their_answer.value, 
+                        "order": my_answer.question.order, 
+                        "thing": thing, 
+                        "section": my_answer.question.section
+                    })
+    %>
+    <% 
+        def sort_order(row):
+            if sort_by == "cat": 
+                return (row["section"], row["score"], row["their_score"], row["order"])
+            else:
+                return (row["score"], row["their_score"], row["order"])
+        last_section = None 
     %>
     <ul>
-        % for score, their_score, order, thing in sorted(things):
-            % if -score == 4:
-                <li><b>${thing}</b></li>
-            % else:
-                <li>${thing}</li>
+        % for row in sorted(things, key=sort_order):
+            % if sort_by == "cat" and last_section != row["section"]:
+                </ul><h4>${row["section"] if row["section"] else "Unsorted"}</h4><ul>
             % endif
+            % if -row["score"] == 4:
+                <li><b>${row["thing"]}</b></li>
+            % else:
+                <li>${row["thing"]}</li>
+            % endif
+            <% last_section = row["section"] %>
         % endfor
     </ul>
 </div>
