@@ -39,27 +39,33 @@
                             my_answer.value_name(), my_answer.question.text,
                             their_answer.value_name(), their_answer.question.text
                         )
-                    things.append((-score, -their_answer.value, my_answer.question.order, thing, my_answer.question.section))
+                    things.append({
+                        "score": -score, 
+                        "their_score": -their_answer.value, 
+                        "order": my_answer.question.order, 
+                        "thing": thing, 
+                        "section": my_answer.question.section
+                    })
     %>
     <% 
         def sort_order(row):
             if sort_by == "cat": 
-                return (row[4], row[0], row[1], row[2])
+                return (row["section"], row["score"], row["their_score"], row["order"])
             else:
-                return (row[0], row[1], row[2])
+                return (row["score"], row["their_score"], row["order"])
         last_section = None 
-        %>
+    %>
     <ul>
-        % for score, their_score, order, thing, section, in sorted(things, key=sort_order):
-            % if sort_by == "cat" and last_section != section:
-                </ul><h4>${section if section else "Unsorted"}</h4><ul>
+        % for row in sorted(things, key=sort_order):
+            % if sort_by == "cat" and last_section != row["section"]:
+                </ul><h4>${row["section"] if row["section"] else "Unsorted"}</h4><ul>
             % endif
-            % if -score == 4:
-                <li><b>${thing}</b></li>
+            % if -row["score"] == 4:
+                <li><b>${row["thing"]}</b></li>
             % else:
-                <li>${thing}</li>
+                <li>${row["thing"]}</li>
             % endif
-            <% last_section = section %>
+            <% last_section = row["section"] %>
         % endfor
     </ul>
 </div>
