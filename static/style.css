@@ -1,4 +1,59 @@
-BODY {background: #DDD;}
+:root{
+	--white:#FFF;
+	--gray1:#EFEFEF;
+	--gray2:#EEE;
+	--gray3:#E0E0E0;
+	--gray4:#DDD;
+	--gray5:#495057;
+	--gray6:#313539;
+	--gray7:#212529;
+	--black:#000;
+	--blue: ##007bff;
+	--darkblue: #003e80;
+	--red: #dc3545;
+	--darkred: #661820;
+	--yellow: #FFD;
+	--darkyellow:#441;
+}
+
+.light{
+	--body-bg: var(--gray4);
+	--main-bg: var(--gray2);
+	--text: var(--gray7);
+	--odd-row: var(--gray1);
+	--even-row: var(--gray3);
+	--border: var(--black);
+	--form-bg: var(--white);
+	--form-fg: var(--gray5);
+	--submit: var(--blue);
+	--danger: var(--red);
+	--want: #DFD;
+	--will: var(--yellow);
+	--wont: #FDD;
+	--highlight: var(--yellow);
+}
+
+.dark{
+	--body-bg: var(--gray7);
+	--main-bg: var(--gray6);
+	--text: var(--gray1);
+	--odd-row: var(--gray7);
+	--even-row: var(--gray6);
+	--border: var(--gray1);
+	--want: #141;
+	--will: var(--darkyellow);
+	--wont: #411;
+	--form-bg: var(--black);
+	--form-fg: var(--text);
+	--submit: var(--darkblue);
+	--danger: var(--darkred);
+	--highlight: var(--darkyellow);
+}
+
+BODY {
+	background: var(--body-bg);
+	color: var(--text);
+}
 
 FOOTER {
 	text-align: center;
@@ -6,8 +61,8 @@ FOOTER {
 	margin: 16px;
 }
 MAIN {
-	background: #EEE;
-	border: 1px solid black;
+	background: var(--main-bg);
+	border: 1px solid var(--border);
 	padding-bottom: 16px;
 }
 H3 {margin-top: 16px;}
@@ -17,8 +72,8 @@ TABLE.zebra TD, TABLE.zebra TH {vertical-align: middle; padding: 4px;}
 TABLE.zebra THEAD TD, TABLE.zebra THEAD TH {border-bottom: 2px solid #CCC;}
 TABLE.zebra TFOOT TD, TABLE.zebra TFOOT TH {border-top: 2px solid #CCC;}
 TABLE.zebra TR TD {border-bottom: 1px solid #DDD;}
-TABLE.zebra TR:nth-child(odd) {background: #EFEFEF;}
-TABLE.zebra TR:nth-child(even) {background: #E0E0E0;}
+TABLE.zebra TR:nth-child(odd) {background: var(--odd-row);}
+TABLE.zebra TR:nth-child(even) {background: var(--even-row);}
 
 LABEL {
 	font-weight: normal;
@@ -38,12 +93,29 @@ LABEL {
 	border-radius: 4px;
 }
 .www .want {
-	background: #DFD;
+	background: var(--want);
 }
 .www .will {
-	background: #FFD;
+	background: var(--will);
 }
 .www .wont {
-	background: #FDD;
+	background: var(--wont);
+}
+.form-control{
+	background-color: var(--form-bg);
+	color: var(--form-fg);
 }
 
+.btn-primary{
+	background-color: var(--submit);
+	border-color: var(--submit);
+}
+
+.btn-danger{
+	background-color: var(--danger);
+	border-color: var(--danger);
+}
+
+table.highlight-unmarked .a0{
+	background-color: var(--highlight) !important;
+}
