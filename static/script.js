@@ -10,4 +10,7 @@ $(function () {
             $("table.zebra").removeClass("highlight-unmarked");
         }
     });
+    $("#toggleTheme").click(function(evt){
+        toggleTheme();
+    })
 });

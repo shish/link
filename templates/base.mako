@@ -27,6 +27,7 @@
                             (${len(user.friend_requests_incoming)} pending)
                         % endif
                     </a></li>
+                    <li class="nav-item"><span class="nav-link" id="toggleTheme">Theme: <i class="fas fa-moon"></i><i class="fas fa-sun"></i></span></li>
                     <li class="nav-item"><a class="nav-link" href="/user/logout">Log Out</a></li>
                 </ul>
             % else:

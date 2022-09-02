@@ -123,3 +123,15 @@ LABEL {
 table.highlight-unmarked .a0{
 	background-color: var(--highlight) !important;
 }
+
+.light #toggleTheme .fa-moon{
+	display: none;
+}
+
+.dark #toggleTheme .fa-sun{
+	display: none;
+}
+
+#toggleTheme{
+	cursor: pointer;
+}
