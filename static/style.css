@@ -1,53 +1,57 @@
 :root{
 	--white:#FFF;
-	--gray1:#EFEFEF;
-	--gray2:#EEE;
-	--gray3:#E0E0E0;
-	--gray4:#DDD;
-	--gray5:#495057;
-	--gray6:#313539;
-	--gray7:#212529;
+	--light-gray1:#EFEFEF;
+	--light-gray2:#EEE;
+	--light-gray3:#E0E0E0;
+	--light-gray4:#DDD;
+	--gray:#495057;
+	--dark-gray1:#313539;
+	--dark-gray2:#212529;
 	--black:#000;
-	--blue: ##007bff;
-	--darkblue: #003e80;
-	--red: #dc3545;
-	--darkred: #661820;
-	--yellow: #FFD;
-	--darkyellow:#441;
+	--btn-blue: #007bff;
+	--btn-dark-blue: #003e80;
+	--btn-red: #dc3545;
+	--btn-dark-red: #661820;
+	--light-green: #DFD;
+	--dark-green: #141;
+	--light-yellow: #FFD;
+	--dark-yellow:#441;
+	--light-red: #FDD;
+	--dark-red: #411;
 }
 
 .light{
-	--body-bg: var(--gray4);
-	--main-bg: var(--gray2);
-	--text: var(--gray7);
-	--odd-row: var(--gray1);
-	--even-row: var(--gray3);
+	--body-bg: var(--light-gray4);
+	--main-bg: var(--light-gray2);
+	--text: var(--dark-gray2);
+	--odd-row: var(--light-gray1);
+	--even-row: var(--light-gray3);
 	--border: var(--black);
 	--form-bg: var(--white);
-	--form-fg: var(--gray5);
-	--submit: var(--blue);
-	--danger: var(--red);
-	--want: #DFD;
-	--will: var(--yellow);
-	--wont: #FDD;
-	--highlight: var(--yellow);
+	--form-fg: var(--gray);
+	--submit: var(--btn-blue);
+	--danger: var(--btn-red);
+	--want: var(--light-green);
+	--will: var(--light-yellow);
+	--wont: var(--light-red);
+	--highlight: var(--light-yellow);
 }
 
 .dark{
-	--body-bg: var(--gray7);
-	--main-bg: var(--gray6);
-	--text: var(--gray1);
-	--odd-row: var(--gray7);
-	--even-row: var(--gray6);
-	--border: var(--gray1);
-	--want: #141;
-	--will: var(--darkyellow);
-	--wont: #411;
+	--body-bg: var(--dark-gray2);
+	--main-bg: var(--dark-gray1);
+	--text: var(--light-gray1);
+	--odd-row: var(--dark-gray2);
+	--even-row: var(--dark-gray1);
+	--border: var(--light-gray1);
+	--want: var(--dark-green);
+	--will: var(--dark-yellow);
+	--wont: var(--dark-red);
 	--form-bg: var(--black);
 	--form-fg: var(--text);
-	--submit: var(--darkblue);
-	--danger: var(--darkred);
-	--highlight: var(--darkyellow);
+	--submit: var(--btn-dark-blue);
+	--danger: var(--btn-dark-red);
+	--highlight: var(--dark-yellow);
 }
 
 BODY {
