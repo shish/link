@@ -5,9 +5,12 @@ $(function () {
     $("#jscontrols").append($("<label><input type='checkbox' id='mark'> Highlight unresponded questions</label>"));
     $("#mark").click(function (evt) {
         if ($("#mark").is(":checked")) {
-            $(".answer.a0").css("background", "#FFFFDD");
+            $("table.zebra").addClass("highlight-unmarked");
         } else {
-            $(".answer.a0").css("background", null);
+            $("table.zebra").removeClass("highlight-unmarked");
         }
     });
+    $("#toggleTheme").click(function(evt){
+        toggleTheme();
+    })
 });

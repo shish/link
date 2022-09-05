@@ -1,4 +1,63 @@
-BODY {background: #DDD;}
+:root{
+	--white:#FFF;
+	--light-gray1:#EFEFEF;
+	--light-gray2:#EEE;
+	--light-gray3:#E0E0E0;
+	--light-gray4:#DDD;
+	--gray:#495057;
+	--dark-gray1:#313539;
+	--dark-gray2:#212529;
+	--black:#000;
+	--btn-blue: #007bff;
+	--btn-dark-blue: #003e80;
+	--btn-red: #dc3545;
+	--btn-dark-red: #661820;
+	--light-green: #DFD;
+	--dark-green: #141;
+	--light-yellow: #FFD;
+	--dark-yellow:#441;
+	--light-red: #FDD;
+	--dark-red: #411;
+}
+
+.light{
+	--body-bg: var(--light-gray4);
+	--main-bg: var(--light-gray2);
+	--text: var(--dark-gray2);
+	--odd-row: var(--light-gray1);
+	--even-row: var(--light-gray3);
+	--border: var(--black);
+	--form-bg: var(--white);
+	--form-fg: var(--gray);
+	--submit: var(--btn-blue);
+	--danger: var(--btn-red);
+	--want: var(--light-green);
+	--will: var(--light-yellow);
+	--wont: var(--light-red);
+	--highlight: var(--light-yellow);
+}
+
+.dark{
+	--body-bg: var(--dark-gray2);
+	--main-bg: var(--dark-gray1);
+	--text: var(--light-gray1);
+	--odd-row: var(--dark-gray2);
+	--even-row: var(--dark-gray1);
+	--border: var(--light-gray1);
+	--want: var(--dark-green);
+	--will: var(--dark-yellow);
+	--wont: var(--dark-red);
+	--form-bg: var(--black);
+	--form-fg: var(--text);
+	--submit: var(--btn-dark-blue);
+	--danger: var(--btn-dark-red);
+	--highlight: var(--dark-yellow);
+}
+
+BODY {
+	background: var(--body-bg);
+	color: var(--text);
+}
 
 FOOTER {
 	text-align: center;
@@ -6,8 +65,8 @@ FOOTER {
 	margin: 16px;
 }
 MAIN {
-	background: #EEE;
-	border: 1px solid black;
+	background: var(--main-bg);
+	border: 1px solid var(--border);
 	padding-bottom: 16px;
 }
 H3 {margin-top: 16px;}
@@ -17,8 +76,8 @@ TABLE.zebra TD, TABLE.zebra TH {vertical-align: middle; padding: 4px;}
 TABLE.zebra THEAD TD, TABLE.zebra THEAD TH {border-bottom: 2px solid #CCC;}
 TABLE.zebra TFOOT TD, TABLE.zebra TFOOT TH {border-top: 2px solid #CCC;}
 TABLE.zebra TR TD {border-bottom: 1px solid #DDD;}
-TABLE.zebra TR:nth-child(odd) {background: #EFEFEF;}
-TABLE.zebra TR:nth-child(even) {background: #E0E0E0;}
+TABLE.zebra TR:nth-child(odd) {background: var(--odd-row);}
+TABLE.zebra TR:nth-child(even) {background: var(--even-row);}
 
 LABEL {
 	font-weight: normal;
@@ -38,12 +97,41 @@ LABEL {
 	border-radius: 4px;
 }
 .www .want {
-	background: #DFD;
+	background: var(--want);
 }
 .www .will {
-	background: #FFD;
+	background: var(--will);
 }
 .www .wont {
-	background: #FDD;
+	background: var(--wont);
+}
+.form-control{
+	background-color: var(--form-bg);
+	color: var(--form-fg);
 }
 
+.btn-primary{
+	background-color: var(--submit);
+	border-color: var(--submit);
+}
+
+.btn-danger{
+	background-color: var(--danger);
+	border-color: var(--danger);
+}
+
+table.highlight-unmarked .a0{
+	background-color: var(--highlight) !important;
+}
+
+.light #toggleTheme .fa-moon{
+	display: none;
+}
+
+.dark #toggleTheme .fa-sun{
+	display: none;
+}
+
+#toggleTheme{
+	cursor: pointer;
+}

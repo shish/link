@@ -8,9 +8,11 @@
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/css/bootstrap.min.css" integrity="sha384-Smlep5jCw/wG7hdkwQ/Z5nLIefveQRIY9nfy6xoR1uRYBtpZgI6339F5dgvm/e9B" crossorigin="anonymous">
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
 		<link rel="stylesheet" href="/static/style.css">
+
 		<link rel="icon" type="image/x-icon" href="/static/favicon.ico">
 	</head>
-	<body>
+	<body class="">
+        <script language="javascript" src="/static/light_dark.js"></script>
         <nav class="navbar navbar-expand-lg navbar-dark fixed-top bg-dark" role="navigation">
             <a class="navbar-brand" href="/">Interest Link - ${heading}</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
@@ -25,6 +27,7 @@
                             (${len(user.friend_requests_incoming)} pending)
                         % endif
                     </a></li>
+                    <li class="nav-item"><span class="nav-link" id="toggleTheme">Theme: <i class="fas fa-moon"></i><i class="fas fa-sun"></i></span></li>
                     <li class="nav-item"><a class="nav-link" href="/user/logout">Log Out</a></li>
                 </ul>
             % else:

@@ -46,8 +46,7 @@
                         "thing": thing, 
                         "section": my_answer.question.section
                     })
-    %>
-    <% 
+
         def sort_order(row):
             if sort_by == "cat": 
                 return (row["section"], row["score"], row["their_score"], row["order"])
