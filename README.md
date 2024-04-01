@@ -1,3 +1,10 @@
+Archived
+========
+All new development is happening in https://github.com/shish/link2
+
+Old Readme
+==========
+
 tl;dr:
 ------
 
