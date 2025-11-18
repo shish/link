@@ -10,6 +10,7 @@ import css from "./Friends.module.scss";
 export const GET_FRIENDS = graphql(`
     query getFriends {
         me: user {
+            id
             friends {
                 username
             }

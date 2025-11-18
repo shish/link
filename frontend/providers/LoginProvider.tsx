@@ -6,6 +6,7 @@ import { UserLoginFragment } from "../gql/graphql";
 
 export const ME_FRAGMENT = graphql(`
     fragment UserLogin on User {
+        id
         username
         email
     }

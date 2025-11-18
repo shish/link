@@ -57,6 +57,10 @@ class UserOnlyViewOwnUserDetails(BasePermission):
 class User:
     __exclude__ = ["id", "email", "password", "responses", "surveys"]
 
+    @strawberry.field
+    def id(self: m.User, info: Info) -> str:
+        return self.username
+
     @strawberry.field(permission_classes=[UserOnlyViewOwnUserDetails])
     def email(self: m.User, info: Info) -> str:
         return self.email
