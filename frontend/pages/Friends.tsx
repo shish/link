@@ -38,9 +38,6 @@ export const REMOVE_FRIEND = graphql(`
 function ConfirmedFriends({ friends }: { friends: { username: string }[] }) {
     const [removeFriendMutation, removeFriendQ] = useMutation(REMOVE_FRIEND, {
         refetchQueries: [GET_FRIENDS],
-        onError: (error) => {
-            alert(error);
-        },
     });
 
     return (
@@ -63,7 +60,9 @@ function ConfirmedFriends({ friends }: { friends: { username: string }[] }) {
                                                 variables: {
                                                     username: friend.username,
                                                 },
-                                            }).catch(() => {/* Handled in onError */});
+                                            }).catch((e) => {
+                                                alert(e);
+                                            });
                                         }}
                                         disabled={removeFriendQ.loading}
                                     />
@@ -80,9 +79,6 @@ function ConfirmedFriends({ friends }: { friends: { username: string }[] }) {
 function IncomingFriends({ friends }: { friends: { username: string }[] }) {
     const [addFriendMutation, addFriendQ] = useMutation(ADD_FRIEND, {
         refetchQueries: [GET_FRIENDS],
-        onError: (error) => {
-            alert(error);
-        },
     });
 
     return (
@@ -105,7 +101,9 @@ function IncomingFriends({ friends }: { friends: { username: string }[] }) {
                                                 variables: {
                                                     username: friend.username,
                                                 },
-                                            }).catch(() => {/* Handled in onError */});
+                                            }).catch((e) => {
+                                                alert(e);
+                                            });
                                         }}
                                         disabled={addFriendQ.loading}
                                     />
@@ -123,18 +121,9 @@ function OutgoingFriends({ friends }: { friends: { username: string }[] }) {
     const [friendToAdd, setFriendToAdd] = useState("");
     const [addFriendMutation, addFriendQ] = useMutation(ADD_FRIEND, {
         refetchQueries: [GET_FRIENDS],
-        onCompleted: (_data: any) => {
-            setFriendToAdd("");
-        },
-        onError: (error) => {
-            alert(error);
-        },
     });
     const [removeFriendMutation, removeFriendQ] = useMutation(REMOVE_FRIEND, {
         refetchQueries: [GET_FRIENDS],
-        onError: (error) => {
-            alert(error);
-        },
     });
 
     return (
@@ -159,7 +148,13 @@ function OutgoingFriends({ friends }: { friends: { username: string }[] }) {
                                 onClick={() => {
                                     addFriendMutation({
                                         variables: { username: friendToAdd },
-                                    }).catch(() => {/* Handled in onError */});
+                                    })
+                                        .then(() => {
+                                            setFriendToAdd("");
+                                        })
+                                        .catch((e) => {
+                                            alert(e);
+                                        });
                                 }}
                                 disabled={addFriendQ.loading}
                             />
@@ -177,7 +172,9 @@ function OutgoingFriends({ friends }: { friends: { username: string }[] }) {
                                             variables: {
                                                 username: friend.username,
                                             },
-                                        }).catch(() => {/* Handled in onError */});
+                                        }).catch((e) => {
+                                            alert(e);
+                                        });
                                     }}
                                     disabled={removeFriendQ.loading}
                                 />

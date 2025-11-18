@@ -19,8 +19,7 @@ export const LogIn = sectionMaker(function () {
                 username,
                 password: password1,
             },
-            onError: (e: Error) => setError(e),
-        });
+        }).catch((e: Error) => setError(e));
     }
 
     function createHandler(e: React.FormEvent<HTMLFormElement>) {
@@ -33,8 +32,7 @@ export const LogIn = sectionMaker(function () {
                 password2,
                 email,
             },
-            onError: (e: Error) => setError(e),
-        });
+        }).catch((e: Error) => setError(e));
     }
 
     return (

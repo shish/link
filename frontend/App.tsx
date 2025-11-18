@@ -1,6 +1,6 @@
 import { ApolloClient, HttpLink, InMemoryCache } from "@apollo/client";
 import { ApolloProvider } from "@apollo/client/react";
-import { MockedResponse } from "@apollo/client/testing";
+import { MockLink } from "@apollo/client/testing";
 import { MockedProvider } from "@apollo/client/testing/react";
 import React, { useState } from "react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
@@ -12,9 +12,12 @@ const createApolloClient = () => {
     const debugHttpLink = new HttpLink({
         uri: "/graphql",
         credentials: "include",
-        fetch: (uri: string, options: any) => {
-            const { operationName } = JSON.parse(options.body);
-            return fetch(`${uri}?on=${operationName}`, options);
+        fetch: (input: string | URL | RequestInfo, init?: RequestInit) => {
+            if (typeof input !== "string" || typeof init?.body !== "string") {
+                return fetch(input, init);
+            }
+            const { operationName } = JSON.parse(init.body);
+            return fetch(`${input}?on=${operationName}`, init);
         },
     });
     const prodHttpLink = new HttpLink({
@@ -32,19 +35,15 @@ const createApolloClient = () => {
 
 type AppProps = {
     router: any;
-    client?: ApolloClient<any>;
-    mocks?: MockedResponse[];
+    client?: ApolloClient;
+    mocks?: MockLink.MockedResponse[];
 };
 
 function ApolloOrMockedProvider({ client, mocks, children }: any) {
     if (client) {
         return <ApolloProvider client={client}>{children}</ApolloProvider>;
     } else if (mocks) {
-        return (
-            <MockedProvider mocks={mocks} addTypename={true}>
-                {children}
-            </MockedProvider>
-        );
+        return <MockedProvider mocks={mocks}>{children}</MockedProvider>;
     } else {
         throw new Error("Must provide either client or mocks");
     }

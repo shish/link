@@ -26,9 +26,6 @@ export const AddQuestion = function ({
     const [section, setSection] = useState(sections[0]);
     const [addQuestionMutation, addQuestionQ] = useMutation(ADD_QUESTION, {
         refetchQueries: [GET_SURVEY],
-        onError: (error) => {
-            alert(error);
-        },
     });
 
     return (
@@ -37,7 +34,7 @@ export const AddQuestion = function ({
             <form
                 onSubmit={(e) => {
                     e.preventDefault();
-                    const form = e.target as HTMLFormElement;
+                    const form = e.currentTarget;
                     const section = form.section.value;
                     const text = form.text.value;
                     const flip = form.flip.value;
@@ -46,13 +43,14 @@ export const AddQuestion = function ({
                             surveyId: survey.id,
                             question: { section, text, flip },
                         },
-                        onCompleted: () => {
+                    })
+                        .then(() => {
                             form.text.value = "";
                             form.flip.value = "";
-                        },
-                    }).catch((err) => {
-                        console.error(err);
-                    });
+                        })
+                        .catch((err) => {
+                            console.error(err);
+                        });
                 }}
             >
                 <label>

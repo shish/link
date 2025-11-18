@@ -26,9 +26,6 @@ export function SurveyPrivacy({
     const [privacy, setPrivacy] = useState(response?.privacy);
     const [saveResponseMutation, saveResponseQ] = useMutation(SAVE_RESPONSE, {
         refetchQueries: [GET_SURVEY],
-        onError: (error) => {
-            alert(error);
-        },
     });
 
     function setPrivacyAndSave(privacy: Privacy) {
@@ -39,7 +36,7 @@ export function SurveyPrivacy({
                 response: { privacy },
             },
         }).catch((e) => {
-            console.error("Error saving privacy:", e);
+            alert(e);
         });
     }
 
@@ -90,7 +87,8 @@ export function SurveyPrivacy({
                             onClick={(e) => {
                                 e.preventDefault();
                                 const btn = e.currentTarget;
-                                navigator.clipboard.writeText(my_link)
+                                navigator.clipboard
+                                    .writeText(my_link)
                                     .then(() => {
                                         const origText = btn.innerText;
                                         btn.innerText = "Copied!";
@@ -99,7 +97,10 @@ export function SurveyPrivacy({
                                         }, 1000);
                                     })
                                     .catch((err) => {
-                                        alert("Failed to copy to clipboard: " + err);
+                                        alert(
+                                            "Failed to copy to clipboard: " +
+                                                err,
+                                        );
                                     });
                             }}
                         >

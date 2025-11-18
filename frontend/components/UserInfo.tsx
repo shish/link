@@ -8,10 +8,8 @@ export const UserInfo = sectionMaker(function () {
 
     function logoutHandler(e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) {
         e.preventDefault();
-        logoutMutation({
-            onError: (error: any) => {
-                alert(error.message);
-            },
+        logoutMutation().catch((e: Error) => {
+            alert(e);
         });
     }
 

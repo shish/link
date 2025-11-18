@@ -9,6 +9,7 @@ import { sectionMaker } from "./Section";
 export const OTHER_RESPONSES = graphql(`
     query getOtherResponses($surveyId: Int!) {
         survey(surveyId: $surveyId) {
+            id
             responses {
                 id
                 owner {
@@ -36,9 +37,10 @@ export const OtherResponses = sectionMaker(function ({
     if (q.error) {
         return <h3>Error: {q.error.message}</h3>;
     }
-    const responses = q.data?.survey?.responses?.filter(
-        (r) => r.owner?.username !== me?.username,
-    ) || [];
+    const responses =
+        q.data?.survey?.responses?.filter(
+            (r) => r.owner?.username !== me?.username,
+        ) || [];
     const friend_responses = responses.filter((r) => r.owner?.isFriend);
     const other_responses = responses.filter((r) => !r.owner?.isFriend);
 

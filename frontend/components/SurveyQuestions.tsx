@@ -52,15 +52,16 @@ export function SurveyQuestions({
             window.location.host +
             "/response/" +
             response?.id;
-        navigator.clipboard.writeText(my_link).then(
-            () => {
+        navigator.clipboard
+            .writeText(my_link)
+            .then(() => {
                 alert(
                     "All saved! The link to your results is in your clipboard, send to a friend to compare <3",
-                )
-            },
-        ).catch((_err) => {
-            alert("All saved! Here is your link: " + my_link);
-        });
+                );
+            })
+            .catch((_err) => {
+                alert("All saved! Here is your link: " + my_link);
+            });
     }
 
     return (
@@ -166,13 +167,9 @@ function Row({ question }: { question: Question }) {
 
     // saveAnswerMutation - the mutation will respond with
     // the updated Answer object, which will go into the
-    // cache, and then the useFragment_experimental will
+    // cache, and then the useFragment() will
     // update the UI with the new value.
-    const [sam, _saveAnswerQ] = useMutation(SAVE_ANSWER, {
-        onError: (error) => {
-            alert(error);
-        },
-    });
+    const [sam, _saveAnswerQ] = useMutation(SAVE_ANSWER, {});
 
     return (
         <>
@@ -191,7 +188,7 @@ function Row({ question }: { question: Question }) {
                                 flip,
                             },
                         }).catch((e) => {
-                            console.error("Error saving answer:", e);
+                            alert(e);
                         });
                     }}
                 />
@@ -209,7 +206,7 @@ function Row({ question }: { question: Question }) {
                                     flip: f,
                                 },
                             }).catch((e) => {
-                                console.error("Error saving answer:", e);
+                                alert(e);
                             });
                         }}
                     />

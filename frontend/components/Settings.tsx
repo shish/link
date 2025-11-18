@@ -38,7 +38,6 @@ export const Settings = sectionMaker(function () {
     const [password2, setPassword2] = useState("");
     const [email, setEmail] = useState(me.email || "");
     const [saveSettingsMutation, saveSettingsQ] = useMutation(UPDATE_USER, {
-        onError: (e: Error) => setError(e),
         update: (cache, { data }) => {
             cache.writeQuery({
                 query: GET_ME,
@@ -58,12 +57,13 @@ export const Settings = sectionMaker(function () {
                 password2,
                 email,
             },
-            onCompleted: () => {
+        })
+            .then(() => {
                 alert("Settings saved!");
-            },
-        }).catch(() => {
-            // Handled in onError
-        });
+            })
+            .catch((e) => {
+                setError(e);
+            });
     }
 
     return (
