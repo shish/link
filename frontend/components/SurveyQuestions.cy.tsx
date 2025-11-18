@@ -1,12 +1,12 @@
 /// <reference types="Cypress" />
 /// <reference path="../../cypress/support/component.ts" />
 
-import { Privacy, SurveyWithResponseFragment } from "../gql/graphql";
+import { Privacy, SurveyViewFragment } from "../gql/graphql";
 import { SurveyQuestions } from "./SurveyQuestions";
 
 describe("test", () => {
     it("playground", () => {
-        const s: SurveyWithResponseFragment = {
+        const s: SurveyViewFragment = {
             id: 1,
             name: "Test Name",
             description: "Test Description",
@@ -40,14 +40,13 @@ describe("test", () => {
                     text: "Pasta",
                 },
             ],
-            myResponse: {},
         };
-        const _r = {
+        const r = {
             id: 1,
             privacy: Privacy.Friends,
             answers: [],
         };
-        cy.mount(<SurveyQuestions survey={s} />);
+        cy.mount(<SurveyQuestions survey={s} response={r} />);
         cy.contains("Savory").should("exist");
         cy.contains("Page 1/2").should("exist");
     });

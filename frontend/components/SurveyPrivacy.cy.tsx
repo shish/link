@@ -1,18 +1,17 @@
 /// <reference types="Cypress" />
 /// <reference path="../../cypress/support/component.ts" />
 
-import { Privacy, SurveyWithResponseFragment } from "../gql/graphql";
+import { Privacy, SurveyViewFragment } from "../gql/graphql";
 import { SAVE_RESPONSE, SurveyPrivacy } from "./SurveyPrivacy";
 
 describe("test", () => {
-    const s: SurveyWithResponseFragment = {
+    const s: SurveyViewFragment = {
         id: 1,
         name: "Test Name",
         description: "Test Description",
         longDescription: "Test Long Description",
         owner: { username: "Shish" },
         questions: [],
-        myResponse: {},
     };
     const r = {
         id: 1,

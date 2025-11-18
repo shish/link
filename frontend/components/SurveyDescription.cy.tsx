@@ -1,12 +1,12 @@
 /// <reference types="Cypress" />
 /// <reference path="../../cypress/support/component.ts" />
 
-import { SurveyWithResponseFragment } from "../gql/graphql";
+import { SurveyViewFragment } from "../gql/graphql";
 import { SurveyDescription } from "./SurveyDescription";
 
 describe("test", () => {
     it("playground", () => {
-        const s: SurveyWithResponseFragment = {
+        const s: SurveyViewFragment = {
             id: 1,
             name: "Test Name",
             description: "Test Description",
