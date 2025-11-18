@@ -5,41 +5,51 @@ import { ErrorPage } from "../components/ErrorPage";
 import { LoadingPage } from "../components/LoadingPage";
 import { Page } from "../components/Page";
 import { graphql } from "../gql";
+import { useFragment as fragCast } from "../gql/fragment-masking";
 import css from "./Friends.module.scss";
+
+export const FRIENDS_FRAGMENT = graphql(`
+    fragment FriendsFragment on User {
+        id
+        friends {
+            username
+        }
+        friendsOutgoing {
+            username
+        }
+        friendsIncoming {
+            username
+        }
+    }
+`);
 
 export const GET_FRIENDS = graphql(`
     query getFriends {
         me: user {
             id
-            friends {
-                username
-            }
-            friendsOutgoing {
-                username
-            }
-            friendsIncoming {
-                username
-            }
+            ...FriendsFragment
         }
     }
 `);
 
 export const ADD_FRIEND = graphql(`
     mutation addFriend($username: String!) {
-        addFriend(username: $username)
+        addFriend(username: $username) {
+            ...FriendsFragment
+        }
     }
 `);
 
 export const REMOVE_FRIEND = graphql(`
     mutation removeFriend($username: String!) {
-        removeFriend(username: $username)
+        removeFriend(username: $username) {
+            ...FriendsFragment
+        }
     }
 `);
 
 function ConfirmedFriends({ friends }: { friends: { username: string }[] }) {
-    const [removeFriendMutation, removeFriendQ] = useMutation(REMOVE_FRIEND, {
-        refetchQueries: [GET_FRIENDS],
-    });
+    const [removeFriendMutation, removeFriendQ] = useMutation(REMOVE_FRIEND);
 
     return (
         <section className={css.confirmed}>
@@ -78,9 +88,7 @@ function ConfirmedFriends({ friends }: { friends: { username: string }[] }) {
 }
 
 function IncomingFriends({ friends }: { friends: { username: string }[] }) {
-    const [addFriendMutation, addFriendQ] = useMutation(ADD_FRIEND, {
-        refetchQueries: [GET_FRIENDS],
-    });
+    const [addFriendMutation, addFriendQ] = useMutation(ADD_FRIEND);
 
     return (
         <section className={css.incoming}>
@@ -120,12 +128,8 @@ function IncomingFriends({ friends }: { friends: { username: string }[] }) {
 
 function OutgoingFriends({ friends }: { friends: { username: string }[] }) {
     const [friendToAdd, setFriendToAdd] = useState("");
-    const [addFriendMutation, addFriendQ] = useMutation(ADD_FRIEND, {
-        refetchQueries: [GET_FRIENDS],
-    });
-    const [removeFriendMutation, removeFriendQ] = useMutation(REMOVE_FRIEND, {
-        refetchQueries: [GET_FRIENDS],
-    });
+    const [addFriendMutation, addFriendQ] = useMutation(ADD_FRIEND);
+    const [removeFriendMutation, removeFriendQ] = useMutation(REMOVE_FRIEND);
 
     return (
         <section className={css.outgoing}>
@@ -209,11 +213,12 @@ export function Friends() {
     ///////////////////////////////////////////////////////////////////
     // Render
 
+    const ff = fragCast(FRIENDS_FRAGMENT, me);
     return (
         <Page title={"Friends"} className={css.page}>
-            <IncomingFriends friends={me.friendsIncoming} />
-            <ConfirmedFriends friends={me.friends} />
-            <OutgoingFriends friends={me.friendsOutgoing} />
+            <IncomingFriends friends={ff.friendsIncoming} />
+            <ConfirmedFriends friends={ff.friends} />
+            <OutgoingFriends friends={ff.friendsOutgoing} />
         </Page>
     );
 }

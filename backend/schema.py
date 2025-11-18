@@ -407,8 +407,8 @@ class Mutation:
 
     ###################################################################
     # Friendships
-    @strawberry.mutation
-    def add_friend(self, info: Info, username: str) -> None:
+    @strawberry.mutation(graphql_type=User)
+    def add_friend(self, info: Info, username: str) -> m.User:
         db = info.context["db"]
         user = get_me_or_die(info, "Anonymous users can't add friends")
         friend = by_username(info, username)
@@ -427,9 +427,11 @@ class Mutation:
         friendship = m.Friendship(friend_a_id=user.id, friend_b_id=friend.id)
         db.add(friendship)
         db.flush()
+        db.refresh(user)  # new friendship doesn't show up on User immediately?
+        return user
 
-    @strawberry.mutation
-    def remove_friend(self, info: Info, username: str) -> None:
+    @strawberry.mutation(graphql_type=User)
+    def remove_friend(self, info: Info, username: str) -> m.User:
         db = info.context["db"]
         user = get_me_or_die(info, "Anonymous users can't remove friends")
         friend = by_username(info, username)
@@ -450,6 +452,7 @@ class Mutation:
             )
         )
         db.flush()
+        return user
 
     ###################################################################
     # Surveys

@@ -21,9 +21,10 @@ type Documents = {
     "\n    mutation saveResponse($surveyId: Int!, $response: ResponseInput!) {\n        saveResponse(surveyId: $surveyId, response: $response) {\n            ...ResponseWithAnswers\n        }\n    }\n": typeof types.SaveResponseDocument,
     "\n    fragment MyAnswer on Answer {\n        id\n        questionId\n        value\n        flip\n    }\n": typeof types.MyAnswerFragmentDoc,
     "\n    mutation saveAnswer($questionId: Int!, $value: WWW!, $flip: WWW!) {\n        saveAnswer(\n            questionId: $questionId\n            answer: { value: $value, flip: $flip }\n        ) {\n            ...MyAnswer\n        }\n    }\n": typeof types.SaveAnswerDocument,
-    "\n    query getFriends {\n        me: user {\n            id\n            friends {\n                username\n            }\n            friendsOutgoing {\n                username\n            }\n            friendsIncoming {\n                username\n            }\n        }\n    }\n": typeof types.GetFriendsDocument,
-    "\n    mutation addFriend($username: String!) {\n        addFriend(username: $username)\n    }\n": typeof types.AddFriendDocument,
-    "\n    mutation removeFriend($username: String!) {\n        removeFriend(username: $username)\n    }\n": typeof types.RemoveFriendDocument,
+    "\n    fragment FriendsFragment on User {\n        id\n        friends {\n            username\n        }\n        friendsOutgoing {\n            username\n        }\n        friendsIncoming {\n            username\n        }\n    }\n": typeof types.FriendsFragmentFragmentDoc,
+    "\n    query getFriends {\n        me: user {\n            id\n            ...FriendsFragment\n        }\n    }\n": typeof types.GetFriendsDocument,
+    "\n    mutation addFriend($username: String!) {\n        addFriend(username: $username) {\n            ...FriendsFragment\n        }\n    }\n": typeof types.AddFriendDocument,
+    "\n    mutation removeFriend($username: String!) {\n        removeFriend(username: $username) {\n            ...FriendsFragment\n        }\n    }\n": typeof types.RemoveFriendDocument,
     "\n    fragment ResponseWithComparison on Response {\n        id\n        owner {\n            username\n        }\n        survey {\n            id\n            name\n            longDescription\n        }\n        comparison {\n            section\n            order\n            text\n            flip\n            mine\n            theirs\n        }\n    }\n": typeof types.ResponseWithComparisonFragmentDoc,
     "\n    query getResponse($responseId: Int!) {\n        response(responseId: $responseId) {\n            ...ResponseWithComparison\n        }\n    }\n": typeof types.GetResponseDocument,
     "\n    fragment ResponseWithAnswers on Response {\n        id\n        privacy\n        answers {\n            ...MyAnswer\n        }\n    }\n": typeof types.ResponseWithAnswersFragmentDoc,
@@ -44,9 +45,10 @@ const documents: Documents = {
     "\n    mutation saveResponse($surveyId: Int!, $response: ResponseInput!) {\n        saveResponse(surveyId: $surveyId, response: $response) {\n            ...ResponseWithAnswers\n        }\n    }\n": types.SaveResponseDocument,
     "\n    fragment MyAnswer on Answer {\n        id\n        questionId\n        value\n        flip\n    }\n": types.MyAnswerFragmentDoc,
     "\n    mutation saveAnswer($questionId: Int!, $value: WWW!, $flip: WWW!) {\n        saveAnswer(\n            questionId: $questionId\n            answer: { value: $value, flip: $flip }\n        ) {\n            ...MyAnswer\n        }\n    }\n": types.SaveAnswerDocument,
-    "\n    query getFriends {\n        me: user {\n            id\n            friends {\n                username\n            }\n            friendsOutgoing {\n                username\n            }\n            friendsIncoming {\n                username\n            }\n        }\n    }\n": types.GetFriendsDocument,
-    "\n    mutation addFriend($username: String!) {\n        addFriend(username: $username)\n    }\n": types.AddFriendDocument,
-    "\n    mutation removeFriend($username: String!) {\n        removeFriend(username: $username)\n    }\n": types.RemoveFriendDocument,
+    "\n    fragment FriendsFragment on User {\n        id\n        friends {\n            username\n        }\n        friendsOutgoing {\n            username\n        }\n        friendsIncoming {\n            username\n        }\n    }\n": types.FriendsFragmentFragmentDoc,
+    "\n    query getFriends {\n        me: user {\n            id\n            ...FriendsFragment\n        }\n    }\n": types.GetFriendsDocument,
+    "\n    mutation addFriend($username: String!) {\n        addFriend(username: $username) {\n            ...FriendsFragment\n        }\n    }\n": types.AddFriendDocument,
+    "\n    mutation removeFriend($username: String!) {\n        removeFriend(username: $username) {\n            ...FriendsFragment\n        }\n    }\n": types.RemoveFriendDocument,
     "\n    fragment ResponseWithComparison on Response {\n        id\n        owner {\n            username\n        }\n        survey {\n            id\n            name\n            longDescription\n        }\n        comparison {\n            section\n            order\n            text\n            flip\n            mine\n            theirs\n        }\n    }\n": types.ResponseWithComparisonFragmentDoc,
     "\n    query getResponse($responseId: Int!) {\n        response(responseId: $responseId) {\n            ...ResponseWithComparison\n        }\n    }\n": types.GetResponseDocument,
     "\n    fragment ResponseWithAnswers on Response {\n        id\n        privacy\n        answers {\n            ...MyAnswer\n        }\n    }\n": types.ResponseWithAnswersFragmentDoc,
@@ -105,15 +107,19 @@ export function graphql(source: "\n    mutation saveAnswer($questionId: Int!, $v
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n    query getFriends {\n        me: user {\n            id\n            friends {\n                username\n            }\n            friendsOutgoing {\n                username\n            }\n            friendsIncoming {\n                username\n            }\n        }\n    }\n"): (typeof documents)["\n    query getFriends {\n        me: user {\n            id\n            friends {\n                username\n            }\n            friendsOutgoing {\n                username\n            }\n            friendsIncoming {\n                username\n            }\n        }\n    }\n"];
+export function graphql(source: "\n    fragment FriendsFragment on User {\n        id\n        friends {\n            username\n        }\n        friendsOutgoing {\n            username\n        }\n        friendsIncoming {\n            username\n        }\n    }\n"): (typeof documents)["\n    fragment FriendsFragment on User {\n        id\n        friends {\n            username\n        }\n        friendsOutgoing {\n            username\n        }\n        friendsIncoming {\n            username\n        }\n    }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n    mutation addFriend($username: String!) {\n        addFriend(username: $username)\n    }\n"): (typeof documents)["\n    mutation addFriend($username: String!) {\n        addFriend(username: $username)\n    }\n"];
+export function graphql(source: "\n    query getFriends {\n        me: user {\n            id\n            ...FriendsFragment\n        }\n    }\n"): (typeof documents)["\n    query getFriends {\n        me: user {\n            id\n            ...FriendsFragment\n        }\n    }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n    mutation removeFriend($username: String!) {\n        removeFriend(username: $username)\n    }\n"): (typeof documents)["\n    mutation removeFriend($username: String!) {\n        removeFriend(username: $username)\n    }\n"];
+export function graphql(source: "\n    mutation addFriend($username: String!) {\n        addFriend(username: $username) {\n            ...FriendsFragment\n        }\n    }\n"): (typeof documents)["\n    mutation addFriend($username: String!) {\n        addFriend(username: $username) {\n            ...FriendsFragment\n        }\n    }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n    mutation removeFriend($username: String!) {\n        removeFriend(username: $username) {\n            ...FriendsFragment\n        }\n    }\n"): (typeof documents)["\n    mutation removeFriend($username: String!) {\n        removeFriend(username: $username) {\n            ...FriendsFragment\n        }\n    }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

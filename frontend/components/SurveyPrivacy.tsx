@@ -24,10 +24,7 @@ export function SurveyPrivacy({
     response: ResponseWithAnswersFragment | null | undefined;
 }): React.ReactElement {
     const [privacy, setPrivacy] = useState(response?.privacy);
-    const [saveResponseMutation, saveResponseQ] = useMutation(SAVE_RESPONSE, {
-        // SAVE_RESPONSE returns the updated response, so no need to refetch
-        // refetchQueries: [GET_SURVEY],
-    });
+    const [saveResponseMutation, saveResponseQ] = useMutation(SAVE_RESPONSE);
 
     function setPrivacyAndSave(privacy: Privacy) {
         setPrivacy(privacy);
