@@ -13,7 +13,7 @@ from . import schema as s
 
 
 class MyGraphQLView(AsyncGraphQLView):
-    async def get_context(self, request: Request, response: Response) -> s.Context:
+    async def get_context(self, request: Request, response: Response):
         return {
             "db": g.db,
             "cookie": session,

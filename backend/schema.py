@@ -419,7 +419,8 @@ class Mutation:
         for friendship in user.friends_incoming:
             if friendship.friend_a_id == friend.id:
                 friendship.confirmed = True
-                return
+                db.refresh(user)
+                return user
         for friendship in user.friends_outgoing:
             if friendship.friend_b_id == friend.id:
                 raise Exception("Friend request already sent")
