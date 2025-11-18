@@ -89,11 +89,18 @@ export function SurveyPrivacy({
                         <button
                             onClick={(e) => {
                                 e.preventDefault();
-                                navigator.clipboard.writeText(my_link).catch(
-                                    (err) => {
+                                const btn = e.currentTarget;
+                                navigator.clipboard.writeText(my_link)
+                                    .then(() => {
+                                        const origText = btn.innerText;
+                                        btn.innerText = "Copied!";
+                                        setTimeout(() => {
+                                            btn.innerText = origText;
+                                        }, 1000);
+                                    })
+                                    .catch((err) => {
                                         alert("Failed to copy to clipboard: " + err);
-                                    }
-                                );
+                                    });
                             }}
                         >
                             Copy to clipboard
