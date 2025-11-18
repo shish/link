@@ -10,7 +10,7 @@ Open in visual studio code and accept the prompt to use a devcontainer, or use g
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/shish/link2)
 
-Once the IDE is open, `cd frontend && npm run all` to start backend and frontend at once.
+Once the IDE is open, `npm run all` to start backend and frontend at once.
 
 A built-in browser in the IDE should open automatically, with hot-reloading configured for both backend and frontend code.
 
@@ -22,7 +22,6 @@ Slowstart
 Build frontend:
 ---------------
 ```
-cd frontend
 npm install
 npm run dev    # for debugging
 npm run build  # for prod

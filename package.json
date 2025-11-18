@@ -1,0 +1,59 @@
+{
+    "name": "link",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "scripts": {
+        "start": "vite --host 127.0.0.1",
+        "build": "vite build",
+        "test": "vitest",
+        "preview": "vite preview",
+        "format": "prettier --write 'frontend/**/*.ts{,x}'",
+        "lint": "eslint frontend",
+        "codegen": "graphql-codegen --watch",
+        "cypress": "npx cypress open",
+        "cypress-coverage": "rm -rf coverage .nyc_output ; npx cypress run ; npx nyc report --check-coverage --lines 80",
+        "backend": "venv/bin/flask --app backend.app run --port 8000 --debug",
+        "dev": "concurrently npm:start npm:test npm:codegen",
+        "all": "concurrently npm:backend npm:start npm:test npm:codegen"
+    },
+    "dependencies": {
+        "@apollo/client": "^4.0.9",
+        "@fortawesome/free-solid-svg-icons": "^7.1.0",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "react-router-dom": "^6.9.0",
+        "react-tooltip": "^5.18.1",
+        "usehooks-ts": "^3.1.1"
+    },
+    "devDependencies": {
+        "@graphql-codegen/cli": "^4.0.1",
+        "@graphql-codegen/client-preset": "^4.0.1",
+        "@types/react": "^18.0.28",
+        "@types/react-dom": "^18.0.11",
+        "@vitejs/plugin-react-swc": "^3.0.0",
+        "concurrently": "^9.2.1",
+        "cypress": "^15.6.0",
+        "eslint": "^9.21.0",
+        "eslint-plugin-react": "^7.37.5",
+        "eslint-plugin-react-dom": "^2.3.5",
+        "eslint-plugin-react-hooks": "^7.0.1",
+        "eslint-plugin-react-refresh": "^0.4.19",
+        "eslint-plugin-react-x": "^2.3.5",
+        "prettier": "^3.6.2",
+        "prettier-plugin-organize-imports": "^4.3.0",
+        "sass": "^1.60.0",
+        "typescript": "^5.9.3",
+        "typescript-eslint": "^8.24.1",
+        "vite": "^7.2.2",
+        "vite-plugin-svgr": "^4.5.0",
+        "vitest": "^4.0.10"
+    },
+    "prettier": {
+        "tabWidth": 4,
+        "trailingComma": "all",
+        "plugins": [
+            "prettier-plugin-organize-imports"
+        ]
+    }
+}

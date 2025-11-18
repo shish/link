@@ -1,17 +1,17 @@
 # Build frontend in an isolated environment
-FROM node:18 AS build
-COPY frontend/package.json frontend/package-lock.json /app/
+FROM node:24 AS build
+COPY package.json package-lock.json /app/
 WORKDIR /app
 RUN npm install
-COPY frontend /app
+COPY . /app
 RUN npm run build
 
 
-FROM python:3.11-slim-buster
+FROM python:3.14-slim
 VOLUME /data
 EXPOSE 8000
 
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONUNBUFFERED=1
 RUN apt update && apt install -y rsync && rm -rf /var/lib/apt/lists/*
 RUN /usr/local/bin/pip install --upgrade pip setuptools wheel
 COPY pyproject.toml /app/
