@@ -1,11 +1,9 @@
-Interest Link 2
-===============
+# Interest Link 2
 
 A tool to help people figure out what interests they have in common, without revealing what they don't have in common
 
+# Quickstart:
 
-Quickstart:
-===========
 Open in visual studio code and accept the prompt to use a devcontainer, or use github's online IDE:
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/shish/link2)
@@ -16,19 +14,18 @@ A built-in browser in the IDE should open automatically, with hot-reloading conf
 
 There are a pre-generated set of user accounts, surveys, and responses. Log in as "alice" with password "alicepass", "bob" and "bobpass", etc
 
+# Slowstart
 
-Slowstart
-=========
-Build frontend:
----------------
+## Build frontend:
+
 ```
 npm install
 npm run dev    # for debugging
 npm run build  # for prod
 ```
 
-Backend:
---------
+## Backend:
+
 ```
 python3 -m venv .venv
 ./.venv/bin/pip install --group dev -e .
@@ -37,8 +34,8 @@ python3 -m venv .venv
 ./.venv/bin/gunicorn -w 4 'backend.app:create_app()' -b 0.0.0.0:8000   # for prod
 ```
 
-Migrating from v1:
-------------------
+## Migrating from v1:
+
 ```
 cp /websites/link1/data/link1.sqlite ./data/link1.sqlite
 ./migrate.sh

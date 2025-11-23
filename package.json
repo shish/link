@@ -8,7 +8,7 @@
         "build": "vite build",
         "test": "vitest",
         "preview": "vite preview",
-        "format": "prettier --write 'frontend/**/*.ts{,x}'",
+        "format": "prettier --write .",
         "lint": "eslint frontend",
         "codegen": "graphql-codegen --watch",
         "cypress": "npx cypress open",

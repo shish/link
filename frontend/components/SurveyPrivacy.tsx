@@ -6,7 +6,6 @@ import {
     ResponseWithAnswersFragment,
     SurveyViewFragment,
 } from "../gql/graphql";
-import { GET_SURVEY } from "../pages/SurveyView";
 
 export const SAVE_RESPONSE = graphql(`
     mutation saveResponse($surveyId: Int!, $response: ResponseInput!) {

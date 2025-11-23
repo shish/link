@@ -10,12 +10,12 @@
                 "intro others"
                 "answers others";
 
-                .intro {
-                    grid-area: intro;
-                }
-                .answers {
-                    grid-area: answers;
-                }
-                }
+            .intro {
+                grid-area: intro;
+            }
+            .answers {
+                grid-area: answers;
+            }
+        }
     }
 }

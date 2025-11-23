@@ -15,9 +15,9 @@
     }
     ARTICLE {
         flex: 1 0 auto;
-        padding: .5em;
+        padding: 0.5em;
         margin-top: 2.7em;
-        gap: 0.5em;        
+        gap: 0.5em;
         display: flex;
         flex-direction: column;
 
@@ -27,14 +27,14 @@
     }
     FOOTER {
         flex: 0 0 auto;
-        font-size: .75em;
+        font-size: 0.75em;
         text-align: center;
         display: block;
         //position: fixed;
         //bottom: 0;
         left: 0;
         right: 0;
-        padding: .5em;
+        padding: 0.5em;
     }
 }
 .header {
@@ -52,7 +52,7 @@
     justify-content: space-between;
     gap: 1em;
     align-items: center;
-    padding: .2em 1em;
+    padding: 0.2em 1em;
 
     IMG {
         height: 2em;

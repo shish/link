@@ -1,6 +1,6 @@
 schema: "http://127.0.0.1:8000/graphql"
 documents:
-  - "frontend/**/*.tsx"
+    - "frontend/**/*.tsx"
 generates:
-  frontend/gql/:
-    preset: client
+    frontend/gql/:
+        preset: client
