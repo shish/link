@@ -17,7 +17,7 @@ dependencies = [
     "gunicorn",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
     "black",
     "ruff",
@@ -39,7 +39,7 @@ source = ["backend"]
 
 [tool.black]
 line-length = 88
-target-version = ['py311']
+target-version = ['py314']
 extend-exclude = '''
 /(
   | venv

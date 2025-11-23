@@ -30,11 +30,11 @@ npm run build  # for prod
 Backend:
 --------
 ```
-python3 -m venv venv
-./venv/bin/pip install -e '.[dev]'
-./venv/bin/flask --app backend.app init-db    # create a database with example data
-./venv/bin/flask --app backend.app run --port 8000 --debug            # for debugging
-./venv/bin/gunicorn -w 4 'backend.app:create_app()' -b 0.0.0.0:8000   # for prod
+python3 -m venv .venv
+./.venv/bin/pip install --group dev -e .
+./.venv/bin/flask --app backend.app init-db    # create a database with example data
+./.venv/bin/flask --app backend.app run --port 8000 --debug            # for debugging
+./.venv/bin/gunicorn -w 4 'backend.app:create_app()' -b 0.0.0.0:8000   # for prod
 ```
 
 Migrating from v1:
