@@ -1,6 +1,3 @@
-/// <reference types="Cypress" />
-/// <reference path="../../cypress/support/component.ts" />
-
 import { OTHER_RESPONSES, OtherResponses } from "./OtherResponses";
 
 describe("test", () => {

@@ -1,7 +1,5 @@
 /// <reference types="cypress" />
 
-export {};
-
 export function randomUsername(): string {
     return ("_test_" + self.crypto.randomUUID())
         .replace(/-/g, "")

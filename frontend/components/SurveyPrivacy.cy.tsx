@@ -1,6 +1,3 @@
-/// <reference types="Cypress" />
-/// <reference path="../../cypress/support/component.ts" />
-
 import { Privacy, SurveyViewFragment } from "../gql/graphql";
 import { SAVE_RESPONSE, SurveyPrivacy } from "./SurveyPrivacy";
 

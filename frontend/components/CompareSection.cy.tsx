@@ -1,6 +1,3 @@
-/// <reference types="Cypress" />
-/// <reference path="../../cypress/support/component.ts" />
-
 import { Www } from "../gql/graphql";
 import { CompareSection } from "./CompareSection";
 

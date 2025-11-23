@@ -1,6 +1,3 @@
-/// <reference types="Cypress" />
-/// <reference path="../../cypress/support/component.ts" />
-
 import { GET_SURVEYS, SurveyItems } from "./SurveyItems";
 
 describe("test", () => {

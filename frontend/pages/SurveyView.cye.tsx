@@ -1,8 +1,4 @@
-/// <reference types="Cypress" />
-
 import { randomUsername } from "../../cypress/support/commands";
-
-export {};
 
 describe("survey", () => {
     it("view a survey", () => {

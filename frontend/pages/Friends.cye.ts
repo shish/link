@@ -1,7 +1,3 @@
-/// <reference types="Cypress" />
-
-export {};
-
 describe("friends list page", () => {
     it("redirect if not logged in", () => {
         cy.visit("/friends");

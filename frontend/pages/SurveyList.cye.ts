@@ -1,7 +1,3 @@
-/// <reference types="Cypress" />
-
-export {};
-
 describe("survey list", () => {
     it("show description", () => {
         cy.visit("/");
