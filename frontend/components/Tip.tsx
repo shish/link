@@ -1,6 +1,7 @@
 import { faCircleInfo } from "@fortawesome/free-solid-svg-icons";
+import { FAIcon } from "@shish2k/react-faicon";
 import { Tooltip } from "react-tooltip";
-import { FontAwesomeIcon } from "./FontAwesomeIcon";
+
 import css from "./Tip.module.scss";
 
 export function Tip({ text }: { text: string }): React.ReactElement {
@@ -8,7 +9,7 @@ export function Tip({ text }: { text: string }): React.ReactElement {
     return (
         <>
             {" "}
-            <FontAwesomeIcon
+            <FAIcon
                 icon={faCircleInfo}
                 className={css.tip}
                 data-tooltip-id={id}

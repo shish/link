@@ -103,10 +103,10 @@ export function LoginProvider(props: any) {
     const me = fragCast(ME_FRAGMENT, q.data!.me!);
 
     return (
-        <UserContext.Provider
+        <UserContext
             value={{ me, createUserMutation, loginMutation, logoutMutation }}
         >
             {props.children}
-        </UserContext.Provider>
+        </UserContext>
     );
 }

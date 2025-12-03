@@ -4,10 +4,11 @@ import {
     faRightFromBracket as faLogout,
     faUserFriends,
 } from "@fortawesome/free-solid-svg-icons";
+import { FAIcon } from "@shish2k/react-faicon";
 import { useContext } from "react";
 import { Link, ScrollRestoration } from "react-router-dom";
+
 import { UserContext } from "../providers/LoginProvider";
-import { FontAwesomeIcon } from "./FontAwesomeIcon";
 import css from "./Page.module.scss";
 import "./style.scss";
 
@@ -34,30 +35,24 @@ function Header({ title }: { title?: string }) {
                 <>
                     <h1>
                         <Link to="/friends">
-                            <FontAwesomeIcon
-                                icon={faUserFriends}
-                                data-cy="friends"
-                            />
+                            <FAIcon icon={faUserFriends} data-cy="friends" />
                         </Link>
                     </h1>
                     <h1>
                         <Link to="/user">
-                            <FontAwesomeIcon
-                                icon={faGears}
-                                data-cy="settings"
-                            />
+                            <FAIcon icon={faGears} data-cy="settings" />
                         </Link>
                     </h1>
                     <h1>
                         <Link to="/" onClick={logoutHandler}>
-                            <FontAwesomeIcon icon={faLogout} data-cy="logout" />
+                            <FAIcon icon={faLogout} data-cy="logout" />
                         </Link>
                     </h1>
                 </>
             ) : (
                 <h1>
                     <Link to="/">
-                        <FontAwesomeIcon icon={faLogin} data-cy="login" />
+                        <FAIcon icon={faLogin} data-cy="login" />
                     </Link>
                 </h1>
             )}
