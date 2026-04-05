@@ -1,4 +1,4 @@
-import { SurveyViewFragment } from "../gql/graphql";
+import type { SurveyViewFragment } from "../gql/graphql";
 import { SurveyDescription } from "./SurveyDescription";
 
 describe("test", () => {

@@ -48,7 +48,7 @@ function SurveyStats({ stats }: { stats: any }) {
     );
 }
 
-export const SurveyItems = sectionMaker(function () {
+export const SurveyItems = sectionMaker(() => {
     const { me } = useContext(UserContext);
     const q = useQuery(GET_SURVEYS);
     useEffect(() => {

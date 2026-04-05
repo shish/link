@@ -1,10 +1,11 @@
 import { useMutation } from "@apollo/client/react";
-import React, { useState } from "react";
+import type React from "react";
+import { useState } from "react";
 import { graphql } from "../gql";
 import {
     Privacy,
-    ResponseWithAnswersFragment,
-    SurveyViewFragment,
+    type ResponseWithAnswersFragment,
+    type SurveyViewFragment,
 } from "../gql/graphql";
 
 export const SAVE_RESPONSE = graphql(`
@@ -81,6 +82,7 @@ export function SurveyPrivacy({
                         <input type="text" value={my_link} disabled={true} />
                         <br />
                         <button
+                            type="button"
                             onClick={(e) => {
                                 e.preventDefault();
                                 const btn = e.currentTarget;

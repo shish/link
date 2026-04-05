@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { UserContext } from "../providers/LoginProvider";
 import { sectionMaker } from "./Section";
 
-export const UserInfo = sectionMaker(function () {
+export const UserInfo = sectionMaker(() => {
     const { me, logoutMutation } = useContext(UserContext);
 
     function logoutHandler(e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) {

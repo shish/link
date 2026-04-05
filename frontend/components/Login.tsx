@@ -2,7 +2,7 @@ import { useContext, useState } from "react";
 import { UserContext } from "../providers/LoginProvider";
 import { sectionMaker } from "./Section";
 
-export const LogIn = sectionMaker(function () {
+export const LogIn = sectionMaker(() => {
     const [loginMode, setLoginMode] = useState<"login" | "create">("login");
     const [error, setError] = useState<Error | null>(null);
     const [username, setUsername] = useState("");

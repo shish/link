@@ -2,7 +2,7 @@ import { useMutation, useQuery } from "@apollo/client/react";
 import React from "react";
 import { graphql } from "../gql";
 import { useFragment as fragCast } from "../gql/fragment-masking";
-import { UserLoginFragment } from "../gql/graphql";
+import type { UserLoginFragment } from "../gql/graphql";
 
 export const ME_FRAGMENT = graphql(`
     fragment UserLogin on User {

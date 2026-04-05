@@ -1,5 +1,5 @@
-import React from "react";
-import { SurveyViewFragment } from "../gql/graphql";
+import type React from "react";
+import type { SurveyViewFragment } from "../gql/graphql";
 
 export function SurveyDescription({
     survey,

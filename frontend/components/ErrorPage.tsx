@@ -31,8 +31,8 @@ export class ErrorBoundary extends React.Component<
 
 export function ErrorPage(props: any) {
     let error: any = null;
+    const routeError = useRouteError();
     try {
-        const routeError = useRouteError();
         error = props.error ?? routeError;
         console.error(error);
     } catch (e) {

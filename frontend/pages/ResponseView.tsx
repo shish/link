@@ -9,7 +9,7 @@ import { OtherResponses } from "../components/OtherResponses";
 import { Page } from "../components/Page";
 import { Section } from "../components/Section";
 import { useFragment as fragCast, graphql } from "../gql";
-import { Comparison } from "../gql/graphql";
+import type { Comparison } from "../gql/graphql";
 import { UserContext } from "../providers/LoginProvider";
 import css from "./ResponseView.module.scss";
 

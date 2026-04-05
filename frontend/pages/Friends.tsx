@@ -54,7 +54,7 @@ function ConfirmedFriends({ friends }: { friends: { username: string }[] }) {
     return (
         <section className={css.confirmed}>
             <h3>Confirmed</h3>
-            {friends.length == 0 ? (
+            {friends.length === 0 ? (
                 <p>No friends yet.</p>
             ) : (
                 <table className="zebra">
@@ -93,7 +93,7 @@ function IncomingFriends({ friends }: { friends: { username: string }[] }) {
     return (
         <section className={css.incoming}>
             <h3>Incoming Requests</h3>
-            {friends.length == 0 ? (
+            {friends.length === 0 ? (
                 <p>No pending invites.</p>
             ) : (
                 <table className="zebra">

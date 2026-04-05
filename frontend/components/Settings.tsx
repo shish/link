@@ -26,17 +26,14 @@ export const UPDATE_USER = graphql(`
     }
 `);
 
-export const Settings = sectionMaker(function () {
+export const Settings = sectionMaker(() => {
     const { me } = useContext(UserContext);
-    if (!me) {
-        return <Navigate to="/" />;
-    }
     const [error, setError] = useState<Error | null>(null);
     const [password, setPassword] = useState("");
-    const [username, setUsername] = useState(me.username);
+    const [username, setUsername] = useState(me?.username ?? "");
     const [password1, setPassword1] = useState("");
     const [password2, setPassword2] = useState("");
-    const [email, setEmail] = useState(me.email || "");
+    const [email, setEmail] = useState(me?.email ?? "");
     const [saveSettingsMutation, saveSettingsQ] = useMutation(UPDATE_USER, {
         update: (cache, { data }) => {
             cache.writeQuery({
@@ -45,6 +42,10 @@ export const Settings = sectionMaker(function () {
             });
         },
     });
+
+    if (!me) {
+        return <Navigate to="/" />;
+    }
 
     function saveHandler(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();

@@ -1,10 +1,11 @@
 import { useFragment, useMutation } from "@apollo/client/react";
-import React, { useState } from "react";
+import type React from "react";
+import { useState } from "react";
 import { graphql } from "../gql";
 import {
-    Question,
-    ResponseWithAnswersFragment,
-    SurveyViewFragment,
+    type Question,
+    type ResponseWithAnswersFragment,
+    type SurveyViewFragment,
     Www,
 } from "../gql/graphql";
 import css from "./SurveyQuestions.module.scss";
@@ -37,7 +38,7 @@ export function SurveyQuestions({
 
     function setSectionAndScrollToQuestionsHeader(section: string) {
         setSection(section);
-        setTimeout(function () {
+        setTimeout(() => {
             const questions_header = document.getElementById("questions");
             if (questions_header) {
                 questions_header.scrollIntoView();
@@ -109,6 +110,7 @@ export function SurveyQuestions({
                         <td colSpan={3}>
                             <div className={css.buttons}>
                                 <button
+                                    type="button"
                                     onClick={() =>
                                         setSectionAndScrollToQuestionsHeader(
                                             prev_section,
@@ -123,6 +125,7 @@ export function SurveyQuestions({
                                     {sections.length}
                                 </div>
                                 <button
+                                    type="button"
                                     onClick={() =>
                                         on_final_page
                                             ? finish()
@@ -229,18 +232,18 @@ function Radios({
                 <Radio
                     className={css.want}
                     label1={"Yay!"}
-                    checked={value == Www.Want}
+                    checked={value === Www.Want}
                     onChange={() => onChange(Www.Want)}
                 />
                 <Radio
                     className={css.will}
-                    checked={value == Www.Will}
+                    checked={value === Www.Will}
                     onChange={() => onChange(Www.Will)}
                 />
                 <Radio
                     className={css.wont}
                     label2={"Boo!"}
-                    checked={value == Www.Wont}
+                    checked={value === Www.Wont}
                     onChange={() => onChange(Www.Wont)}
                 />
             </div>

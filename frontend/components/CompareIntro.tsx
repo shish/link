@@ -1,13 +1,9 @@
-import { ResponseWithComparisonFragment } from "../gql/graphql";
+import type { ResponseWithComparisonFragment } from "../gql/graphql";
 import css from "../pages/ResponseView.module.scss";
 import { sectionMaker } from "./Section";
 
-export const CompareIntro = sectionMaker(function ({
-    response,
-}: {
-    response: ResponseWithComparisonFragment;
-}) {
-    return (
+export const CompareIntro = sectionMaker(
+    ({ response }: { response: ResponseWithComparisonFragment }) => (
         <>
             <h3>
                 Comparing your answers for{" "}
@@ -18,5 +14,6 @@ export const CompareIntro = sectionMaker(function ({
             </h3>
             <p>{response.survey.longDescription}</p>
         </>
-    );
-}, css.intro);
+    ),
+    css.intro,
+);

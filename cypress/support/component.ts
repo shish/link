@@ -19,7 +19,7 @@ import "./commands";
 // Alternatively you can use CommonJS syntax:
 // require('./commands')
 
-import { mount, MountOptions, MountReturn } from "cypress/react";
+import { type MountOptions, type MountReturn, mount } from "cypress/react";
 import React from "react";
 import { DevApp } from "../../frontend/App";
 import { GET_ME } from "../../frontend/providers/LoginProvider";
@@ -41,7 +41,7 @@ declare global {
 
 //Cypress.Commands.add('mount', mount)
 Cypress.Commands.add("mount", (component, options: any = {}) => {
-    let mocks = options.mocks ?? [];
+    const mocks = options.mocks ?? [];
     // DevApp includes LoginProvider which does this
     mocks.unshift({
         request: {

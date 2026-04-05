@@ -1,8 +1,8 @@
 import css from "../pages/SurveyList.module.scss";
 import { sectionMaker } from "./Section";
 
-export const About = sectionMaker(function () {
-    return (
+export const About = sectionMaker(
+    () => (
         <>
             <h3>About</h3>
             <p>How this site works:</p>
@@ -27,5 +27,6 @@ export const About = sectionMaker(function () {
                 doing that :3
             </p>
         </>
-    );
-}, css.about);
+    ),
+    css.about,
+);

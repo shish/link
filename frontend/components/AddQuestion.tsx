@@ -1,7 +1,7 @@
 import { useMutation } from "@apollo/client/react";
 import { useState } from "react";
 import { graphql } from "../gql";
-import { SurveyViewFragment } from "../gql/graphql";
+import type { SurveyViewFragment } from "../gql/graphql";
 import { GET_SURVEY } from "../pages/SurveyView";
 
 const ADD_QUESTION = graphql(`
@@ -15,11 +15,7 @@ const ADD_QUESTION = graphql(`
 `);
 
 //export const AddQuestion = sectionMaker(function({ survey_id }: { survey_id: number; }) {
-export const AddQuestion = function ({
-    survey,
-}: {
-    survey: SurveyViewFragment;
-}) {
+export const AddQuestion = ({ survey }: { survey: SurveyViewFragment }) => {
     const sections = Array.from(
         new Set(survey.questions.map((q) => q.section)),
     ).sort();

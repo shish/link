@@ -39,11 +39,9 @@ export function sectionMaker<T extends (...args: any) => any>(
     Component: T,
     className?: string,
 ): T {
-    return function (props: Parameters<typeof Component>) {
-        return (
-            <Section className={className}>
-                <Component {...props} />
-            </Section>
-        );
-    } as T;
+    return ((props: Parameters<typeof Component>) => (
+        <Section className={className}>
+            <Component {...props} />
+        </Section>
+    )) as T;
 }

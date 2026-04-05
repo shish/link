@@ -1,4 +1,4 @@
-import { Privacy, SurveyViewFragment } from "../gql/graphql";
+import { Privacy, type SurveyViewFragment } from "../gql/graphql";
 import { SurveyQuestions } from "./SurveyQuestions";
 
 describe("test", () => {

@@ -1,6 +1,6 @@
 import { ApolloClient, HttpLink, InMemoryCache } from "@apollo/client";
 import { ApolloProvider } from "@apollo/client/react";
-import { MockLink } from "@apollo/client/testing";
+import type { MockLink } from "@apollo/client/testing";
 import { MockedProvider } from "@apollo/client/testing/react";
 import React, { useState } from "react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";

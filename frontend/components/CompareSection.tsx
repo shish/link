@@ -1,4 +1,4 @@
-import { Comparison, Www } from "../gql/graphql";
+import { type Comparison, Www } from "../gql/graphql";
 
 export function CompareSection({
     section,
@@ -25,17 +25,17 @@ export function CompareSection({
             <h3>{section}</h3>
             <ul>
                 {comparisons.sort(compsort).map((c) => (
-                    <Comparison key={c.text + c.order} comparison={c} />
+                    <ComparisonEl key={c.text + c.order} comparison={c} />
                 ))}
             </ul>
         </>
     );
 }
 
-function Comparison({ comparison }: { comparison: Comparison }) {
+function ComparisonEl({ comparison }: { comparison: Comparison }) {
     const c = comparison;
 
-    if (c.mine == Www.Want && c.theirs == Www.Want) {
+    if (c.mine === Www.Want && c.theirs === Www.Want) {
         if (!c.flip) {
             return (
                 <li>
@@ -51,14 +51,14 @@ function Comparison({ comparison }: { comparison: Comparison }) {
                 </li>
             );
         }
-    } else if (c.mine == Www.Want && c.theirs == Www.Will) {
+    } else if (c.mine === Www.Want && c.theirs === Www.Will) {
         return (
             <li>
                 You want {c.flip ? c.text : ""} and they would try{" "}
                 {c.flip ? c.flip : c.text}
             </li>
         );
-    } else if (c.mine == Www.Will && c.theirs == Www.Want) {
+    } else if (c.mine === Www.Will && c.theirs === Www.Want) {
         return (
             <li>
                 You would try {c.flip ? c.text : ""} and they want{" "}
