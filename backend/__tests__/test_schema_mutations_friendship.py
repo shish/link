@@ -66,16 +66,14 @@ async def test_removeFriend_notfound(query: Query, login: Login):
 async def test_addFriend_e2e(query: Query, login: Login):
     # log in as alice and add frank as a friend, check outgoing request
     await login("Alice")
-    result = await query(
-        """
+    result = await query("""
         mutation m {
             addFriend(username: "Frank") {
                 id
                 friendsOutgoing { username }
             }
         }
-    """
-    )
+    """)
     assert "Frank" in [
         user["username"] for user in result.data["addFriend"]["friendsOutgoing"]
     ]
@@ -88,16 +86,14 @@ async def test_addFriend_e2e(query: Query, login: Login):
     ]
 
     # accept the request, check that alice is now a friend
-    result = await query(
-        """
+    result = await query("""
         mutation m {
             addFriend(username: "Alice") {
                 id
                 friends { username }
             }
         }
-    """
-    )
+    """)
     assert "Alice" in [user["username"] for user in result.data["addFriend"]["friends"]]
 
     # check alice's friends list
@@ -106,16 +102,14 @@ async def test_addFriend_e2e(query: Query, login: Login):
     assert "Frank" in [user["username"] for user in result.data["user"]["friends"]]
 
     # remove the friend, check result
-    result = await query(
-        """
+    result = await query("""
         mutation m {
             removeFriend(username: "Frank") {
                 id
                 friends { username }
             }
         }
-    """
-    )
+    """)
     assert "Frank" not in [
         user["username"] for user in result.data["removeFriend"]["friends"]
     ]

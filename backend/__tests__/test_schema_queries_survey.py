@@ -21,8 +21,7 @@ async def test_surveys_paging(db: Session, query: Query, subtests):
 
 @pytest.mark.asyncio
 async def test_survey_metadata(query: Query):
-    result = await query(
-        """
+    result = await query("""
         query q {
             survey(surveyId: 1) {
                 id
@@ -34,8 +33,7 @@ async def test_survey_metadata(query: Query):
                 }
             }
         }
-    """
-    )
+    """)
     assert result.data["survey"] == {
         "id": 1,
         "name": "Pets",
@@ -80,8 +78,7 @@ async def test_survey_stats(query: Query, subtests, login: Login):
 
 @pytest.mark.asyncio
 async def test_survey_questions(query: Query):
-    result = await query(
-        """
+    result = await query("""
         query q {
             survey(surveyId: 1) {
                 questions {
@@ -91,8 +88,7 @@ async def test_survey_questions(query: Query):
                 }
             }
         }
-    """
-    )
+    """)
     assert result.data["survey"]["questions"] == [
         {"id": 1, "text": "Human (I am the owner)", "flip": "Human (I am the pet)"},
         {"id": 2, "text": "Humans", "flip": None},

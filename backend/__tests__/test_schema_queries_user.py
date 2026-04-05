@@ -13,8 +13,7 @@ async def test_user_self(query: Query, login: Login, subtests):
 
     with subtests.test("user-view-self"):
         await login("Alice")
-        result = await query(
-            """
+        result = await query("""
             query q {
                 user {
                     username
@@ -24,8 +23,7 @@ async def test_user_self(query: Query, login: Login, subtests):
                     friendsOutgoing { username }
                 }
             }
-        """
-        )
+        """)
         assert result.data["user"] == {
             "username": "Alice",
             "email": "alice@example.com",
