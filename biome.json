@@ -1,14 +1,14 @@
 {
     "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-    "vcs": {
-        "enabled": true,
-        "clientKind": "git",
-        "useIgnoreFile": true
+    "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+    "files": { "includes": ["**", "!frontend/gql", "!!dist"] },
+    "assist": { "actions": { "source": { "organizeImports": "on" } } },
+    "formatter": {
+        "indentStyle": "space",
+        "indentWidth": 4
     },
     "linter": {
-        "enabled": true,
         "rules": {
-            "recommended": true,
             "a11y": {
                 "useValidAnchor": "off",
                 "noStaticElementInteractions": "off",
@@ -30,19 +30,10 @@
             }
         }
     },
-    "formatter": {
-        "enabled": true,
-        "indentStyle": "space",
-        "indentWidth": 4,
-        "lineEnding": "lf"
-    },
     "javascript": {
         "formatter": {
             "trailingCommas": "all",
             "quoteStyle": "double"
         }
-    },
-    "files": {
-        "ignoreUnknown": true
     }
 }
