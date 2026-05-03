@@ -19,27 +19,27 @@
         "all": "concurrently npm:backend npm:start npm:test npm:codegen"
     },
     "dependencies": {
-        "@apollo/client": "^4.1.7",
+        "@apollo/client": "^4.1.9",
         "@fortawesome/free-solid-svg-icons": "^7.1.0",
         "@shish2k/react-faicon": "^0.1.0",
         "react": "^19.2.5",
         "react-dom": "^19.2.5",
-        "react-router-dom": "^7.14.1",
+        "react-router-dom": "^7.14.2",
         "react-tooltip": "^6.0.0",
         "usehooks-ts": "^3.1.1"
     },
     "devDependencies": {
-        "@biomejs/biome": "^2.4.11",
+        "@biomejs/biome": "^2.4.14",
         "@graphql-codegen/cli": "^6.3.0",
         "@graphql-codegen/client-preset": "^5.1.3",
         "@types/react": "^19.2.6",
         "@types/react-dom": "^19.2.3",
         "@vitejs/plugin-react": "^6.0.1",
         "concurrently": "^9.2.1",
-        "cypress": "^15.13.1",
+        "cypress": "^15.14.2",
         "sass": "^1.60.0",
         "typescript": "^6.0",
         "vite": "^8.0",
-        "vitest": "^4.1.4"
+        "vitest": "^4.1.5"
     }
 }
