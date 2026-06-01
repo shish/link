@@ -35,7 +35,7 @@
         "@types/react": "^19.2.6",
         "@types/react-dom": "^19.2.3",
         "@vitejs/plugin-react": "^6.0.1",
-        "concurrently": "^9.2.1",
+        "concurrently": "^10.0.1",
         "cypress": "^15.14.2",
         "sass": "^1.60.0",
         "typescript": "^6.0",
