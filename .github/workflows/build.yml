@@ -66,8 +66,8 @@ jobs:
             - name: Publish to Registry
               uses: elgohr/Publish-Docker-Github-Action@main
               with:
-                  name: shish2k/link2
-                  username: ${{ secrets.DOCKER_USERNAME }}
+                  name: ${{ vars.DOCKER_USERNAME }}/${{ github.event.repository.name }}
+                  username: ${{ vars.DOCKER_USERNAME }}
                   password: ${{ secrets.DOCKER_PASSWORD }}
 
     deploy:
@@ -77,8 +77,8 @@ jobs:
             - publish
         steps:
             - name: Deploy
-              uses: shish/watchtower-update@main
-              with:
-                  url: https://watchtower.shish.io/v1/update
-                  api_token: ${{ secrets.WATCHTOWER_TOKEN }}
-                  images: shish2k/link2
+              run: |
+                  IMG="${{ vars.DOCKER_USERNAME }}/${{ github.event.repository.name }}"
+                  curl -sS -X POST \
+                      -H "Authorization: Bearer ${{ secrets.WATCHTOWER_TOKEN }}" \
+                      "https://watchtower.shish.io/v1/update?images=$IMG"
