@@ -19,4 +19,4 @@ WORKDIR /app
 RUN uv sync --locked
 COPY --from=build /app/dist /app/frontend/dist
 RUN ln -s /data ./data
-CMD ["uv", "run", "gunicorn", "-w", "4", "backend.app:create_app()", "-b", "0.0.0.0:8000"]
+CMD ["uv", "run", "gunicorn", "-w", "4", "backend.app:create_app()", "-b", "0.0.0.0:8000", "--access-logfile", "-"]
