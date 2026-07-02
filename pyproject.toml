@@ -19,7 +19,6 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "black",
     "ruff",
     "mypy",
     "pytest",
@@ -37,14 +36,13 @@ addopts = "--cov --cov-report term-missing --cov-fail-under 95"
 [tool.coverage.run]
 source = ["backend"]
 
-[tool.black]
+[tool.ruff]
 line-length = 88
-target-version = ['py314']
-extend-exclude = '''
-/(
-  | venv
-)/
-'''
+target-version = "py314"
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
 
 [tool.isort]
 profile = "black"

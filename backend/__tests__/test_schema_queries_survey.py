@@ -343,9 +343,9 @@ COMPARE_RESPONSE = """
 @pytest.mark.asyncio
 async def test_response_comparison_anon(db: Session, query: Query):
     # anon can't view any responses, even public ones
-    db.execute(select(m.Response).where(m.Response.id == 1)).scalar_one().privacy = (
-        m.Privacy.PUBLIC
-    )
+    db.execute(
+        select(m.Response).where(m.Response.id == 1)
+    ).scalar_one().privacy = m.Privacy.PUBLIC
     result = await query(
         COMPARE_RESPONSE,
         responseId=1,
@@ -450,9 +450,9 @@ async def test_response_comparison_noresponse(db: Session, query: Query, login: 
         .first()
     )
     assert response is None
-    db.execute(select(m.Response).where(m.Response.id == 1)).scalar_one().privacy = (
-        m.Privacy.PUBLIC
-    )
+    db.execute(
+        select(m.Response).where(m.Response.id == 1)
+    ).scalar_one().privacy = m.Privacy.PUBLIC
 
     await login("Frank")
     result = await query(

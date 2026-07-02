@@ -1,84 +1,74 @@
 name: Build
 
 on:
-    push:
-        branches:
-            - main
-    pull_request:
+  push:
+    branches:
+      - main
+  pull_request:
 
 jobs:
-    pytest:
-        runs-on: ubuntu-24.04
-        steps:
-            - uses: actions/checkout@v7
-            - uses: actions/setup-python@v6
-            - name: Install dependencies
-              run: |
-                  python -m pip install --upgrade pip
-                  pip install --group dev -e .
-            - name: Test with pytest
-              run: pytest
+  pytest:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install --group dev -e .
+      - name: Test with pytest
+        run: pytest
 
-    black:
-        runs-on: ubuntu-24.04
-        steps:
-            - uses: actions/checkout@v7
-            - uses: psf/black@stable
-              with:
-                  options: "--check --diff"
-                  src: "./backend"
+  ruff:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install --group dev -e .
+      - name: Lint with Ruff
+        run: |
+          ruff check --output-format=github backend
 
-    ruff:
-        runs-on: ubuntu-24.04
-        steps:
-            - uses: actions/checkout@v7
-            - uses: actions/setup-python@v6
-            - name: Install dependencies
-              run: |
-                  python -m pip install --upgrade pip
-                  pip install --group dev -e .
-            - name: Lint with Ruff
-              run: |
-                  ruff check --output-format=github backend
+  mypy:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install --group dev -e .
+      - name: Lint with MyPy
+        run: mypy
 
-    mypy:
-        runs-on: ubuntu-24.04
-        steps:
-            - uses: actions/checkout@v7
-            - uses: actions/setup-python@v6
-            - name: Install dependencies
-              run: |
-                  python -m pip install --upgrade pip
-                  pip install --group dev -e .
-            - name: Lint with MyPy
-              run: mypy
+  publish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    needs:
+      - pytest
+      - ruff
+      - mypy
+    steps:
+      - uses: actions/checkout@v7
+      - name: Publish to Registry
+        uses: elgohr/Publish-Docker-Github-Action@main
+        with:
+          name: ${{ vars.DOCKER_USERNAME }}/${{ github.event.repository.name }}
+          username: ${{ vars.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-    publish:
-        if: github.ref == 'refs/heads/main'
-        runs-on: ubuntu-24.04
-        needs:
-            - pytest
-            - black
-            - ruff
-            - mypy
-        steps:
-            - uses: actions/checkout@v7
-            - name: Publish to Registry
-              uses: elgohr/Publish-Docker-Github-Action@main
-              with:
-                  name: ${{ vars.DOCKER_USERNAME }}/${{ github.event.repository.name }}
-                  username: ${{ vars.DOCKER_USERNAME }}
-                  password: ${{ secrets.DOCKER_PASSWORD }}
-
-    deploy:
-        if: github.ref == 'refs/heads/main'
-        runs-on: ubuntu-24.04
-        needs:
-            - publish
-        steps:
-            - name: Deploy
-              run: |
-                  IMG="${{ vars.DOCKER_USERNAME }}/${{ github.event.repository.name }}"
-                  curl -sS -X POST \
-                      -H "Authorization: Bearer ${{ secrets.WATCHTOWER_TOKEN }}" \
-                      "https://watchtower.shish.io/v1/update?images=$IMG"
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    needs:
+      - publish
+    steps:
+      - name: Deploy
+        run: |
+          IMG="${{ vars.DOCKER_USERNAME }}/${{ github.event.repository.name }}"
+          curl -sS -X POST \
+              -H "Authorization: Bearer ${{ secrets.WATCHTOWER_TOKEN }}" \
+              "https://watchtower.shish.io/v1/update?images=$IMG"

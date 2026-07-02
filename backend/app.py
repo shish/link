@@ -6,7 +6,7 @@ from flask import Flask, Request, Response, g, jsonify, session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from strawberry.flask.views import AsyncGraphQLView
-from strawberry_sqlalchemy_mapper import StrawberrySQLAlchemyLoader  # type: ignore
+from strawberry_sqlalchemy_mapper import StrawberrySQLAlchemyLoader
 
 from . import models as m
 from . import schema as s
