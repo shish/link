@@ -3,6 +3,7 @@
 .pytest_cache
 .git
 .coverage
+.venv
 venv
 frontend/node_modules
 data

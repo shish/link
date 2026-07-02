@@ -11,13 +11,12 @@ FROM python:3.14-slim
 VOLUME /data
 EXPOSE 8000
 
-ENV PYTHONUNBUFFERED=1
-RUN apt update && apt install -y rsync && rm -rf /var/lib/apt/lists/*
-RUN /usr/local/bin/pip install --upgrade pip setuptools wheel
-COPY pyproject.toml /app/
-WORKDIR /app
-RUN /usr/local/bin/pip install -e .
+ENV PYTHONUNBUFFERED=1 UV_NO_DEV=1
+COPY --from=ghcr.io/astral-sh/uv:0.11.3 /uv /uvx /bin/
+
 COPY . /app
+WORKDIR /app
+RUN uv sync --locked
 COPY --from=build /app/dist /app/frontend/dist
 RUN ln -s /data ./data
-CMD ["/usr/local/bin/gunicorn", "-w", "4", "backend.app:create_app()", "-b", "0.0.0.0:8000"]
+CMD ["uv", "run", "gunicorn", "-w", "4", "backend.app:create_app()", "-b", "0.0.0.0:8000"]
