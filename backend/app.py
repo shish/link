@@ -7,6 +7,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from strawberry.flask.views import AsyncGraphQLView
 from strawberry_sqlalchemy_mapper import StrawberrySQLAlchemyLoader
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from . import models as m
 from . import schema as s
@@ -31,6 +32,7 @@ def create_app(test_config=None):
         instance_path=os.path.abspath("./data"),
         static_folder="../frontend/dist",
     )
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)  # ty: ignore
     app.config.from_mapping(
         SQLALCHEMY_DATABASE_URI="sqlite:///data/link2.sqlite",
         SQLALCHEMY_DATABASE_ECHO=False,
