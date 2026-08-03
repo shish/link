@@ -8,7 +8,7 @@ description = "Interest Link"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
-    "strawberry-graphql[debug-server]",
+    "strawberry-graphql",
     "strawberry-sqlalchemy-mapper",
     "sqlalchemy",
     "flask-sqlalchemy",
@@ -39,6 +39,9 @@ source = ["backend"]
 [tool.ruff]
 line-length = 88
 target-version = "py314"
+
+[tool.ruff.lint]
+ignore = ["TRY002", "UP040", "UP045", "RUF012", "RUF059", "C400"]
 
 [tool.ruff.format]
 quote-style = "double"

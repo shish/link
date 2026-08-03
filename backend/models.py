@@ -43,13 +43,13 @@ class Friendship(Base):
     )
     confirmed: Mapped[bool] = mapped_column(default=False)
 
-    friend_a: Mapped["User"] = relationship(
+    friend_a: Mapped[User] = relationship(
         "User",
         back_populates="friends_outgoing",
         foreign_keys=[friend_a_id],
         lazy="joined",
     )
-    friend_b: Mapped["User"] = relationship(
+    friend_b: Mapped[User] = relationship(
         "User",
         back_populates="friends_incoming",
         foreign_keys=[friend_b_id],
@@ -65,10 +65,10 @@ class User(Base):
     password: Mapped[str]
     email: Mapped[str]
 
-    friends_incoming: Mapped[t.List[Friendship]] = relationship(
+    friends_incoming: Mapped[list[Friendship]] = relationship(
         "Friendship", foreign_keys=[Friendship.friend_b_id], back_populates="friend_b"
     )
-    friends_outgoing: Mapped[t.List[Friendship]] = relationship(
+    friends_outgoing: Mapped[list[Friendship]] = relationship(
         "Friendship", foreign_keys=[Friendship.friend_a_id], back_populates="friend_a"
     )
 
@@ -93,7 +93,7 @@ class User(Base):
             return given == current
 
     @property
-    def friends(self) -> t.Iterator["User"]:
+    def friends(self) -> t.Iterator[User]:
         for outgoing in self.friends_outgoing:
             if outgoing.confirmed:
                 yield outgoing.friend_b
@@ -113,10 +113,10 @@ class Question(Base):
     order: Mapped[float] = mapped_column(default=0.0)
     section: Mapped[str] = mapped_column(default="")
     text: Mapped[str]
-    flip: Mapped[t.Optional[str]] = mapped_column(default=None)
-    extra: Mapped[t.Optional[str]] = mapped_column(default=None)
+    flip: Mapped[str | None] = mapped_column(default=None)
+    extra: Mapped[str | None] = mapped_column(default=None)
 
-    survey: Mapped["Survey"] = relationship("Survey")
+    survey: Mapped[Survey] = relationship("Survey")
 
 
 class Survey(Base):
@@ -129,13 +129,13 @@ class Survey(Base):
     user_id: Mapped[int] = mapped_column("user_id", ForeignKey("user.id"), index=True)
 
     owner: Mapped[User] = relationship("User")
-    questions: Mapped[t.Dict[int, Question]] = relationship(
+    questions: Mapped[dict[int, Question]] = relationship(
         "Question",
         collection_class=attribute_keyed_dict("id"),
         back_populates="survey",
         cascade="all, delete-orphan",
     )
-    responses: Mapped[t.List["Response"]] = relationship(
+    responses: Mapped[list[Response]] = relationship(
         "Response", back_populates="survey"
     )
 
@@ -169,7 +169,7 @@ class Response(Base):
 
     owner: Mapped[User] = relationship("User", lazy="joined")
     survey: Mapped[Survey] = relationship("Survey", back_populates="responses")
-    answers: Mapped[t.Dict[int, Answer]] = relationship(
+    answers: Mapped[dict[int, Answer]] = relationship(
         "Answer",
         collection_class=attribute_keyed_dict("question_id"),
         cascade="all, delete-orphan",
@@ -177,7 +177,7 @@ class Response(Base):
 
 
 def populate_example_data(db: Session):
-    users: t.List[User] = []
+    users: list[User] = []
     for name in ["Alice", "Bob", "Charlie", "Dave", "Evette", "Frank"]:
         user = User(name, name.lower() + "pass")
         users.append(user)
@@ -212,8 +212,8 @@ def populate_example_data(db: Session):
     def qgen(
         section: str,
         text: str,
-        flip: t.Optional[str] = None,
-        extra: t.Optional[str] = None,
+        flip: str | None = None,
+        extra: str | None = None,
     ) -> Question:
         q = Question(
             survey_id=pets.id,

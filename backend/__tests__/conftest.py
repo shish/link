@@ -28,14 +28,14 @@ def cookie() -> SecureCookieSession:
 
 class Query(t.Protocol):
     def __call__(
-        self, q: str, error: t.Optional[str] = None, **kwargs
+        self, q: str, error: str | None = None, **kwargs
     ) -> t.Coroutine[t.Any, t.Any, ExecutionResult]:  # pragma: no cover
         ...
 
 
 @pytest.fixture
 def query(db, cookie) -> Query:
-    async def _query(q, error: t.Optional[str] = None, **kwargs):
+    async def _query(q, error: str | None = None, **kwargs):
         ctx: s.Context = {
             "db": db,
             "cookie": cookie,
@@ -59,7 +59,7 @@ def query(db, cookie) -> Query:
 
 class Login(t.Protocol):
     def __call__(
-        self, username: str = "alice", password: t.Optional[str] = None
+        self, username: str = "alice", password: str | None = None
     ) -> t.Coroutine[t.Any, t.Any, ExecutionResult]:  # pragma: no cover
         ...
 

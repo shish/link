@@ -27,7 +27,7 @@ Context = TypedDict(
         "db": Session,
         "cookie": SessionMixin,
         "sqlalchemy_loader": StrawberrySQLAlchemyLoader,
-        "cache": t.Dict[str, t.Any],
+        "cache": dict[str, t.Any],
     },
 )
 Info = SInfo[Context, None]
@@ -66,21 +66,21 @@ class User:
         return self.email
 
     @strawberry.field(
-        permission_classes=[UserOnlyViewOwnUserDetails], graphql_type=t.List["User"]
+        permission_classes=[UserOnlyViewOwnUserDetails], graphql_type=list["User"]
     )
-    def friends(self: m.User, info: Info) -> t.List[m.User]:
+    def friends(self: m.User, info: Info) -> list[m.User]:
         return list(self.friends)
 
     @strawberry.field(
-        permission_classes=[UserOnlyViewOwnUserDetails], graphql_type=t.List["User"]
+        permission_classes=[UserOnlyViewOwnUserDetails], graphql_type=list["User"]
     )
-    def friends_outgoing(self: m.User, info: Info) -> t.List[m.User]:
+    def friends_outgoing(self: m.User, info: Info) -> list[m.User]:
         return [f.friend_b for f in self.friends_outgoing if not f.confirmed]
 
     @strawberry.field(
-        permission_classes=[UserOnlyViewOwnUserDetails], graphql_type=t.List["User"]
+        permission_classes=[UserOnlyViewOwnUserDetails], graphql_type=list["User"]
     )
-    def friends_incoming(self: m.User, info: Info) -> t.List[m.User]:
+    def friends_incoming(self: m.User, info: Info) -> list[m.User]:
         return [f.friend_a for f in self.friends_incoming if not f.confirmed]
 
     @strawberry.field
@@ -108,7 +108,7 @@ class Survey:
     __exclude__ = ["user_id"]
 
     @strawberry.field(graphql_type=t.Optional["Response"])
-    def my_response(self: m.Survey, info: Info) -> t.Optional[m.Response]:
+    def my_response(self: m.Survey, info: Info) -> m.Response | None:
         db = info.context["db"]
         user = get_me_or_die(info, "Anonymous users can't view responses")
         return (
@@ -121,8 +121,8 @@ class Survey:
             .first()
         )
 
-    @strawberry.field(graphql_type=t.List["Response"])
-    def responses(self: m.Survey, info: Info) -> t.List[m.Response]:
+    @strawberry.field(graphql_type=list["Response"])
+    def responses(self: m.Survey, info: Info) -> list[m.Response]:
         user = get_me_or_die(info, "Anonymous users can't view responses")
         return [
             r
@@ -132,12 +132,12 @@ class Survey:
             or (r.privacy == m.Privacy.FRIENDS and r.owner in user.friends)
         ]
 
-    @strawberry.field(graphql_type=t.List["Question"])
+    @strawberry.field(graphql_type=list["Question"])
     def questions(self: m.Survey) -> t.Iterable[m.Question]:
         return self.questions.values()
 
     @strawberry.field(graphql_type=t.Optional[SurveyStats])
-    def stats(self: m.Survey, info: Info) -> t.Optional[SurveyStats]:
+    def stats(self: m.Survey, info: Info) -> SurveyStats | None:
         user = get_me(info)
         if not user:
             return None
@@ -154,11 +154,11 @@ class Survey:
 
 @strawberry.input
 class QuestionInput:
-    section: t.Optional[str] = None
-    order: t.Optional[float] = None
+    section: str | None = None
+    order: float | None = None
     text: str
-    flip: t.Optional[str] = None
-    extra: t.Optional[str] = None
+    flip: str | None = None
+    extra: str | None = None
 
 
 @strawberry.input
@@ -187,7 +187,7 @@ class Comparison:
     section: str
     order: float
     text: str
-    flip: t.Optional[str] = None
+    flip: str | None = None
     mine: WWW
     theirs: WWW
 
@@ -200,7 +200,7 @@ class Response:
     __exclude__ = ["user_id", "survey_id"]
 
     @strawberry.field(graphql_type=t.Optional["User"])
-    def owner(self: m.Response, info: Info) -> t.Optional[m.User]:
+    def owner(self: m.Response, info: Info) -> m.User | None:
         user = get_me_or_die(info, "Anonymous users can't view responses")
         if (
             self.owner == user
@@ -210,15 +210,15 @@ class Response:
             return self.owner
         return None
 
-    @strawberry.field(graphql_type=t.List["Answer"])
+    @strawberry.field(graphql_type=list["Answer"])
     def answers(self: m.Response, info: Info) -> t.Iterable[m.Answer]:
         user = get_me_or_die(info, "Anonymous users can't view responses")
         if self.owner != user:
             raise Exception("You can't view other people's raw answers")
         return self.answers.values()
 
-    @strawberry.field(graphql_type=t.List[Comparison])
-    def comparison(self: m.Response, info: Info) -> t.List[Comparison]:
+    @strawberry.field(graphql_type=list[Comparison])
+    def comparison(self: m.Response, info: Info) -> list[Comparison]:
         db = info.context["db"]
         user = get_me_or_die(info, "Anonymous users can't view responses")
         my_response = (
@@ -237,7 +237,7 @@ class Response:
             raise Exception("You can't compare yourself to yourself")
         survey: m.Survey = self.survey
         # return things that we have in common
-        common_answers: t.List[Comparison] = []
+        common_answers: list[Comparison] = []
         for q in survey.questions.values():
             ma = my_response.answers.get(q.id)
             ta = self.answers.get(q.id)
@@ -287,7 +287,7 @@ class Response:
 @strawberry.type
 class Query:
     @strawberry.field(graphql_type=t.Optional[User])
-    def user(self, info: Info, username: t.Optional[str] = None) -> t.Optional[m.User]:
+    def user(self, info: Info, username: str | None = None) -> m.User | None:
         me = get_me(info)
         if username:
             if not me:
@@ -346,7 +346,7 @@ class Mutation:
     @strawberry.mutation(graphql_type=t.Optional[User])
     def create_user(
         self, info: Info, username: str, password1: str, password2: str, email: str
-    ) -> t.Optional[m.User]:
+    ) -> m.User | None:
         db = info.context["db"]
         user = by_username(info, username)
         if user:
@@ -392,7 +392,7 @@ class Mutation:
         return user
 
     @strawberry.mutation(graphql_type=t.Optional[User])
-    def login(self, info: Info, username: str, password: str) -> t.Optional[m.User]:
+    def login(self, info: Info, username: str, password: str) -> m.User | None:
         user = by_username(info, username)
         if not user or not user.check_password(password):
             raise Exception("User not found")
@@ -604,7 +604,7 @@ def validate_new_password(password1: str, password2: str) -> None:
         raise Exception("Bad password")
 
 
-def get_me(info: Info) -> t.Optional[m.User]:
+def get_me(info: Info) -> m.User | None:
     return by_username(info, info.context["cookie"].get("username"))
 
 
@@ -615,7 +615,7 @@ def get_me_or_die(info: Info, msg: str) -> m.User:
     return user
 
 
-def by_username(info: Info, username: t.Optional[str]) -> t.Optional[m.User]:
+def by_username(info: Info, username: str | None) -> m.User | None:
     if not username:
         return None
     cache = info.context["cache"]
