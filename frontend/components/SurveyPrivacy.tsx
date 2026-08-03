@@ -3,7 +3,7 @@ import type React from "react";
 import { useState } from "react";
 import { graphql } from "../gql";
 import {
-    Privacy,
+    type Privacy,
     type ResponseWithAnswersFragment,
     type SurveyViewFragment,
 } from "../gql/graphql";
@@ -61,14 +61,14 @@ export function SurveyPrivacy({
                         Select a privacy setting (Can be changed any time)
                     </option>
                 )}
-                <option value={Privacy.Friends}>
+                <option value={'FRIENDS'}>
                     Friends (Friends can see, others can't)
                 </option>
-                <option value={Privacy.Anonymous}>
+                <option value={'ANONYMOUS'}>
                     Anonymous (Response will be given an ID number, not linked
                     to an account)
                 </option>
-                <option value={Privacy.Public}>
+                <option value={'PUBLIC'}>
                     Public (Show up in the list of people who answered)
                 </option>
             </select>

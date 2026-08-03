@@ -6,7 +6,7 @@ import {
     type Question,
     type ResponseWithAnswersFragment,
     type SurveyViewFragment,
-    Www,
+    type Www,
 } from "../gql/graphql";
 import css from "./SurveyQuestions.module.scss";
 import { Tip } from "./Tip";
@@ -165,8 +165,8 @@ function Row({ question }: { question: Question }) {
             id: question.id,
         },
     });
-    const value = data?.value || Www.Na;
-    const flip = data?.flip || Www.Na;
+    const value = data?.value || 'NA';
+    const flip = data?.flip || 'NA';
 
     // saveAnswerMutation - the mutation will respond with
     // the updated Answer object, which will go into the
@@ -232,19 +232,19 @@ function Radios({
                 <Radio
                     className={css.want}
                     label1={"Yay!"}
-                    checked={value === Www.Want}
-                    onChange={() => onChange(Www.Want)}
+                    checked={value === 'WANT'}
+                    onChange={() => onChange('WANT')}
                 />
                 <Radio
                     className={css.will}
-                    checked={value === Www.Will}
-                    onChange={() => onChange(Www.Will)}
+                    checked={value === 'WILL'}
+                    onChange={() => onChange('WILL')}
                 />
                 <Radio
                     className={css.wont}
                     label2={"Boo!"}
-                    checked={value === Www.Wont}
-                    onChange={() => onChange(Www.Wont)}
+                    checked={value === 'WONT'}
+                    onChange={() => onChange('WONT')}
                 />
             </div>
         </td>
@@ -254,8 +254,8 @@ function Radios({
         className={css.na}
         label1={"(N/A"}
         label2={")"}
-        checked={value == Www.Na}
-        onChange={() => onChange(Www.Na)}
+        checked={value == 'NA'}
+        onChange={() => onChange('NA')}
     />
     */
 }
