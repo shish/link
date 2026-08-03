@@ -1,11 +1,12 @@
 import typing as t
+from collections import abc
 
 import pytest
 from flask.sessions import SecureCookieSession
 from graphql import ExecutionResult
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
-from strawberry_sqlalchemy_mapper import StrawberrySQLAlchemyLoader  # type: ignore
+from strawberry_sqlalchemy_mapper import StrawberrySQLAlchemyLoader
 
 from .. import models as m
 from .. import schema as s
@@ -29,7 +30,7 @@ def cookie() -> SecureCookieSession:
 class Query(t.Protocol):
     def __call__(
         self, q: str, error: str | None = None, **kwargs
-    ) -> t.Coroutine[t.Any, t.Any, ExecutionResult]:  # pragma: no cover
+    ) -> abc.Coroutine[t.Any, t.Any, ExecutionResult]:  # pragma: no cover
         ...
 
 

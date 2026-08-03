@@ -12,7 +12,7 @@ from sqlalchemy.orm import (
     relationship,
 )
 
-SECURE = True
+SECURE: bool = True
 
 
 class Privacy(enum.Enum):

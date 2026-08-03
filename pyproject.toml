@@ -20,7 +20,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "ruff",
-    "mypy",
+    "ty",
     "pytest",
     "pytest-asyncio",
     "pytest-subtests",
@@ -50,5 +50,5 @@ indent-style = "space"
 [tool.isort]
 profile = "black"
 
-[tool.mypy]
-files = "backend"
+[tool.ty.rules]
+not-subscriptable = "ignore"

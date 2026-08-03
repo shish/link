@@ -28,7 +28,7 @@ def test_graphql(client: FlaskClient):
     )
     assert response.status_code == 200
     assert response.content_type == "application/json"
-    assert response.json["data"]["__schema"]["types"][0]["name"] == "Query"  # type: ignore
+    assert response.json["data"]["__schema"]["types"][0]["name"] == "Query"
 
 
 def test_static(client: FlaskClient):

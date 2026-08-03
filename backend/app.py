@@ -60,7 +60,7 @@ def create_app(test_config=None):
     # Load database
 
     engine = create_engine(
-        app.config.get("SQLALCHEMY_DATABASE_URI"),
+        app.config.get("SQLALCHEMY_DATABASE_URI"),  # type: ignore
         echo=app.config.get("DATABASE_ECHO"),
     )
 

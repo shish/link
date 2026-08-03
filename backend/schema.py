@@ -10,7 +10,7 @@ from sqlalchemy import and_, delete, func, or_, select
 from sqlalchemy.orm import Session
 from strawberry.permission import BasePermission
 from strawberry.types.info import Info as SInfo
-from strawberry_sqlalchemy_mapper import (  # type: ignore
+from strawberry_sqlalchemy_mapper import (
     StrawberrySQLAlchemyLoader,
     StrawberrySQLAlchemyMapper,
 )
