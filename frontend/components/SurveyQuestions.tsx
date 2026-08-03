@@ -2,11 +2,11 @@ import { useFragment, useMutation } from "@apollo/client/react";
 import type React from "react";
 import { useState } from "react";
 import { graphql } from "../gql";
-import {
-    type Question,
-    type ResponseWithAnswersFragment,
-    type SurveyViewFragment,
-    type Www,
+import type {
+    Question,
+    ResponseWithAnswersFragment,
+    SurveyViewFragment,
+    Www,
 } from "../gql/graphql";
 import css from "./SurveyQuestions.module.scss";
 import { Tip } from "./Tip";
@@ -165,8 +165,8 @@ function Row({ question }: { question: Question }) {
             id: question.id,
         },
     });
-    const value = data?.value || 'NA';
-    const flip = data?.flip || 'NA';
+    const value = data?.value || "NA";
+    const flip = data?.flip || "NA";
 
     // saveAnswerMutation - the mutation will respond with
     // the updated Answer object, which will go into the
@@ -232,19 +232,19 @@ function Radios({
                 <Radio
                     className={css.want}
                     label1={"Yay!"}
-                    checked={value === 'WANT'}
-                    onChange={() => onChange('WANT')}
+                    checked={value === "WANT"}
+                    onChange={() => onChange("WANT")}
                 />
                 <Radio
                     className={css.will}
-                    checked={value === 'WILL'}
-                    onChange={() => onChange('WILL')}
+                    checked={value === "WILL"}
+                    onChange={() => onChange("WILL")}
                 />
                 <Radio
                     className={css.wont}
                     label2={"Boo!"}
-                    checked={value === 'WONT'}
-                    onChange={() => onChange('WONT')}
+                    checked={value === "WONT"}
+                    onChange={() => onChange("WONT")}
                 />
             </div>
         </td>

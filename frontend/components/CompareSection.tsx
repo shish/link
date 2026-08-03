@@ -1,4 +1,4 @@
-import { type Comparison, Www } from "../gql/graphql";
+import type { Comparison, Www } from "../gql/graphql";
 
 export function CompareSection({
     section,
@@ -8,11 +8,11 @@ export function CompareSection({
     comparisons: Array<Comparison>;
 }) {
     function compsort(a: Comparison, b: Comparison) {
-        const s = {
-            'WANT': 2,
-            'WILL': 1,
-            'WONT': 0,
-            'NA': 0,
+        const s: Record<Www, number> = {
+            WANT: 2,
+            WILL: 1,
+            WONT: 0,
+            NA: 0,
         };
         return (
             s[b.mine] + s[b.theirs] - (s[a.mine] + s[a.theirs]) ||
@@ -35,7 +35,7 @@ export function CompareSection({
 function ComparisonEl({ comparison }: { comparison: Comparison }) {
     const c = comparison;
 
-    if (c.mine === 'WANT' && c.theirs === 'WANT') {
+    if (c.mine === "WANT" && c.theirs === "WANT") {
         if (!c.flip) {
             return (
                 <li>
@@ -51,14 +51,14 @@ function ComparisonEl({ comparison }: { comparison: Comparison }) {
                 </li>
             );
         }
-    } else if (c.mine === 'WANT' && c.theirs === 'WILL') {
+    } else if (c.mine === "WANT" && c.theirs === "WILL") {
         return (
             <li>
                 You want {c.flip ? c.text : ""} and they would try{" "}
                 {c.flip ? c.flip : c.text}
             </li>
         );
-    } else if (c.mine === 'WILL' && c.theirs === 'WANT') {
+    } else if (c.mine === "WILL" && c.theirs === "WANT") {
         return (
             <li>
                 You would try {c.flip ? c.text : ""} and they want{" "}

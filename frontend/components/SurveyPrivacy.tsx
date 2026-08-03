@@ -2,10 +2,10 @@ import { useMutation } from "@apollo/client/react";
 import type React from "react";
 import { useState } from "react";
 import { graphql } from "../gql";
-import {
-    type Privacy,
-    type ResponseWithAnswersFragment,
-    type SurveyViewFragment,
+import type {
+    Privacy,
+    ResponseWithAnswersFragment,
+    SurveyViewFragment,
 } from "../gql/graphql";
 
 export const SAVE_RESPONSE = graphql(`
@@ -61,14 +61,14 @@ export function SurveyPrivacy({
                         Select a privacy setting (Can be changed any time)
                     </option>
                 )}
-                <option value={'FRIENDS'}>
+                <option value={"FRIENDS"}>
                     Friends (Friends can see, others can't)
                 </option>
-                <option value={'ANONYMOUS'}>
+                <option value={"ANONYMOUS"}>
                     Anonymous (Response will be given an ID number, not linked
                     to an account)
                 </option>
-                <option value={'PUBLIC'}>
+                <option value={"PUBLIC"}>
                     Public (Show up in the list of people who answered)
                 </option>
             </select>

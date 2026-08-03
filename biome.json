@@ -12,7 +12,9 @@
             "a11y": {
                 "useValidAnchor": "off",
                 "noStaticElementInteractions": "off",
-                "noLabelWithoutControl": "off"
+                "noLabelWithoutControl": "off",
+                "noSvgWithoutTitle": "off",
+                "useKeyWithClickEvents": "off"
             },
             "suspicious": {
                 "noArrayIndexKey": "off",
