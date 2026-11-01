@@ -7,7 +7,7 @@ COPY . /app
 RUN npm run build
 
 
-FROM python:3.14-slim
+FROM python:3.15-slim
 VOLUME /data
 EXPOSE 8000
 
